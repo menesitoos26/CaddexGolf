@@ -1,0 +1,300 @@
+/* Registro hoyo a hoyo: objetivos grandes, sin teclado */
+
+.captura {
+  background-color: var(--superficie-2);
+  border: 1px solid var(--linea);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  max-width: 460px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.captura-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px;
+}
+
+.captura-campo {
+  display: block;
+  font-size: 12px;
+  color: var(--acero);
+  margin-bottom: 3px;
+}
+
+.captura-cabecera h2 {
+  font-family: var(--titulos);
+  font-weight: 600;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.captura-acumulado {
+  padding: 8px 12px;
+  border-radius: var(--r-sm);
+  background-color: var(--carbon-3);
+  font-family: var(--titulos);
+  font-weight: 600;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Tira de hoyos --- */
+
+.captura-tira {
+  display: flex;
+  gap: 8px;
+  padding: 0 20px 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.captura-tira::-webkit-scrollbar {
+  display: none;
+}
+
+.captura-ficha {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 44px;
+  height: 52px;
+  padding: 0 6px;
+  border: 1px solid var(--linea);
+  border-radius: 12px;
+  background-color: var(--carbon-2);
+  color: var(--acero);
+  flex-shrink: 0;
+}
+
+/* El hoyo aún sin jugar se marca con borde discontinuo. */
+.captura-ficha.pendiente {
+  background-color: transparent;
+  border-style: dashed;
+  color: var(--acero-apagado);
+}
+
+.captura-ficha.activa {
+  min-width: 64px;
+  background-color: var(--acento);
+  border-color: var(--acento);
+  border-style: solid;
+  color: var(--acento-texto);
+}
+
+.captura-ficha-numero {
+  font-family: var(--titulos);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+.captura-ficha.activa .captura-ficha-numero {
+  font-weight: 700;
+  font-size: 22px;
+}
+
+.captura-ficha-diff {
+  font-size: 9px;
+  color: var(--acero-apagado);
+  line-height: 1;
+}
+
+.captura-ficha.jugada .captura-ficha-diff {
+  color: var(--acero);
+}
+
+/* --- Cuerpo --- */
+
+.captura-cuerpo {
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.captura-bloque {
+  background-color: var(--carbon-2);
+  border: 1px solid var(--linea);
+  border-radius: var(--r-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.captura-bloque-fila {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+}
+
+.captura-contador {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.captura-contador-pequeno {
+  gap: 16px;
+}
+
+.captura-paso {
+  width: 76px;
+  height: 76px;
+  border: 1px solid var(--linea);
+  border-radius: 22px;
+  background-color: var(--superficie-2);
+  color: var(--hueso);
+  font-size: 34px;
+  line-height: 1;
+}
+
+.captura-paso:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.captura-paso-principal {
+  border: none;
+  background-color: var(--acento);
+  color: var(--acento-texto);
+}
+
+.captura-paso-principal:disabled {
+  background-color: var(--carbon-3);
+  color: var(--acero-apagado);
+  opacity: 1;
+}
+
+.captura-paso-pequeno {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  font-size: 26px;
+}
+
+.captura-paso-borde {
+  border-color: var(--acento);
+  color: var(--marca-texto);
+  background-color: transparent;
+}
+
+.captura-cifra {
+  font-family: var(--titulos);
+  font-weight: 700;
+  font-size: 84px;
+  line-height: 0.85;
+  letter-spacing: -0.05em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Mientras no se toca, la cifra es sólo una propuesta (el par del hoyo). */
+.captura-cifra.sin-anotar {
+  color: var(--acero-apagado);
+}
+
+.captura-cifra-pequena {
+  min-width: 34px;
+  text-align: center;
+  font-family: var(--titulos);
+  font-weight: 700;
+  font-size: 40px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.captura-pista {
+  margin: -6px 0 0;
+  font-size: 12px;
+  color: var(--acero);
+  text-align: center;
+}
+
+/* --- Opciones --- */
+
+.captura-bloque-opciones {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.captura-opciones {
+  display: flex;
+  gap: 10px;
+}
+
+.captura-opcion {
+  flex: 1;
+  height: 60px;
+  border: 1px solid var(--linea);
+  border-radius: 16px;
+  background-color: var(--carbon-2);
+  color: var(--acero);
+  font-family: var(--titulos);
+  font-size: 15px;
+}
+
+.captura-opcion.ancha {
+  flex: 1.2;
+}
+
+.captura-opcion.elegida {
+  border-color: var(--acento);
+  background-color: rgba(196, 242, 60, 0.12);
+  color: var(--marca-texto);
+  font-weight: 600;
+}
+
+/* --- Pie --- */
+
+.captura-pie {
+  margin-top: 18px;
+  padding: 14px 20px calc(18px + env(safe-area-inset-bottom, 0px));
+  background-color: var(--barra);
+  border-top: 1px solid var(--linea);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.captura-atras {
+  width: 64px;
+  height: 60px;
+  border: 1px solid var(--linea);
+  border-radius: 16px;
+  background-color: transparent;
+  color: var(--acero);
+  font-size: 22px;
+}
+
+.captura-atras:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.captura-siguiente {
+  flex: 1;
+  height: 60px;
+  border-radius: 16px;
+  font-size: 17px;
+}
+
+@media (max-width: 400px) {
+  .captura-paso {
+    width: 66px;
+    height: 66px;
+  }
+
+  .captura-cifra {
+    font-size: 68px;
+  }
+}

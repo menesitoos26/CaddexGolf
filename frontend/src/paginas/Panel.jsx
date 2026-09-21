@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
-  Bar,
-  BarChart,
+  Area,
+  AreaChart,
   CartesianGrid,
-  Legend,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -20,24 +19,34 @@ import {
   formatearFecha,
   formatearNumero,
 } from '../utils/formato'
-import { ESTILO_TOOLTIP } from '../utils/graficas'
+import { COLORES, ESTILO_EJE, ESTILO_TOOLTIP } from '../utils/graficas'
 import './panel.css'
+
+const RANGOS = [
+  { clave: 5, texto: '5' },
+  { clave: 10, texto: '10' },
+  { clave: 20, texto: '20' },
+  { clave: 0, texto: 'Todo' },
+]
 
 export default function Panel() {
   const { usuario } = useAuth()
-  const [ultima, setUltima] = useState(null)
+  const navegar = useNavigate()
+
   const [estadisticas, setEstadisticas] = useState(null)
+  const [rondas, setRondas] = useState([])
+  const [rango, setRango] = useState(10)
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState('')
 
   useEffect(() => {
     let cancelado = false
 
-    Promise.all([api.ultimaRonda(), api.estadisticas()])
-      .then(([ronda, stats]) => {
+    Promise.all([api.estadisticas(), api.listarRondas({ limit: 5 })])
+      .then(([stats, pagina]) => {
         if (cancelado) return
-        setUltima(ronda)
         setEstadisticas(stats)
+        setRondas(pagina.items)
       })
       .catch((fallo) => !cancelado && setError(fallo.message))
       .finally(() => !cancelado && setCargando(false))
@@ -47,27 +56,38 @@ export default function Panel() {
     }
   }, [])
 
-  if (cargando) return <Cargando texto="Cargando tu panel…" />
+  if (cargando) return <Cargando texto="Cargando tu dashboard…" />
 
   const resumen = estadisticas?.resumen
+  const evolucion = estadisticas?.evolucion ?? []
+  const visibles = rango === 0 ? evolucion : evolucion.slice(-rango)
 
-  const datosGrafica =
-    ultima?.holes.map((hoyo) => ({
-      hoyo: hoyo.hole_number,
-      Par: hoyo.par,
-      Golpes: hoyo.strokes,
-    })) ?? []
+  const datosTendencia = visibles.map((punto) => ({
+    fecha: formatearFecha(punto.played_on),
+    campo: punto.campo,
+    'Sobre par': punto.diferencia_par_18,
+  }))
+
+  // La mejora se mide comparando la primera y la última ronda del rango.
+  const variacion =
+    visibles.length >= 2
+      ? Number(
+          (
+            visibles[visibles.length - 1].diferencia_par_18 - visibles[0].diferencia_par_18
+          ).toFixed(1),
+        )
+      : null
 
   return (
     <div className="pagina">
       <div className="contenedor">
         <div className="pagina-cabecera">
           <div>
-            <h1>Hola, {usuario?.name?.split(' ')[0]} 👋</h1>
-            <p>Este es el resumen de tu juego.</p>
+            <span className="etiqueta-campo">Apunta. Analiza. Mejora.</span>
+            <h1>Hola, {usuario?.name?.split(' ')[0]}</h1>
           </div>
           <Link to="/rondas/nueva" className="btn btn-primario">
-            + Registrar ronda
+            Nueva ronda
           </Link>
         </div>
 
@@ -77,115 +97,229 @@ export default function Panel() {
           </p>
         )}
 
-        <section className="rejilla-metricas seccion">
-          <article className="metrica">
-            <span className="metrica-etiqueta">Hándicap</span>
-            <span className="metrica-valor">{usuario?.handicap ?? '—'}</span>
-            <span className="metrica-nota">
-              {usuario?.handicap === null || usuario?.handicap === undefined
-                ? 'Necesitas 3 rondas para calcularlo'
-                : 'Según el World Handicap System'}
-            </span>
-          </article>
+        <div className="panel-rejilla">
+          <div className="panel-columna">
+            <section className="tarjeta panel-hero">
+              <div className="panel-hero-cabecera">
+                <div className="panel-hero-cifras">
+                  <div>
+                    <span className="etiqueta-campo">Hándicap actual</span>
+                    <span className="cifra metrica-valor metrica-valor-grande">
+                      {usuario?.handicap ?? '—'}
+                    </span>
+                  </div>
+                  {variacion !== null && (
+                    <div className="panel-hero-delta">
+                      <span
+                        className={`cifra ${variacion < 0 ? 'resultado-bajo-par' : 'resultado-sobre-par'}`}
+                      >
+                        {variacion > 0 ? `+${variacion}` : variacion}
+                      </span>
+                      <span className="metrica-nota">
+                        en las últimas {visibles.length} rondas
+                      </span>
+                    </div>
+                  )}
+                </div>
 
-          <article className="metrica">
-            <span className="metrica-etiqueta">Rondas jugadas</span>
-            <span className="metrica-valor">{resumen?.total_rondas ?? 0}</span>
-            <span className="metrica-nota">{resumen?.total_hoyos ?? 0} hoyos en total</span>
-          </article>
+                {evolucion.length > 1 && (
+                  <div className="segmentado panel-rangos">
+                    {RANGOS.map((opcion) => (
+                      <button
+                        key={opcion.clave}
+                        type="button"
+                        aria-pressed={rango === opcion.clave}
+                        onClick={() => setRango(opcion.clave)}
+                      >
+                        {opcion.texto}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-          <article className="metrica">
-            <span className="metrica-etiqueta">Mejor ronda</span>
-            <span className={`metrica-valor ${claseDiferencia(resumen?.mejor_ronda_sobre_par)}`}>
-              {formatearDiferencia(resumen?.mejor_ronda_sobre_par)}
-            </span>
-            <span className="metrica-nota">Respecto al par</span>
-          </article>
-
-          <article className="metrica">
-            <span className="metrica-etiqueta">Media (18 hoyos)</span>
-            <span className="metrica-valor">
-              {formatearNumero(resumen?.media_golpes_18, 1)}
-            </span>
-            <span className="metrica-nota">
-              {formatearDiferencia(
-                resumen?.media_sobre_par_18 === null || resumen?.media_sobre_par_18 === undefined
-                  ? null
-                  : Math.round(resumen.media_sobre_par_18),
-              )}{' '}
-              sobre el par
-            </span>
-          </article>
-        </section>
-
-        <section className="tarjeta seccion">
-          <div className="panel-grafica-cabecera">
-            <div>
-              <h2 className="seccion-titulo" style={{ marginBottom: 4 }}>
-                Última ronda
-              </h2>
-              {ultima && (
-                <p className="texto-tenue" style={{ margin: 0, fontSize: 14 }}>
-                  {ultima.course.name} · {formatearFecha(ultima.played_on)} ·{' '}
-                  <span className={claseDiferencia(ultima.diferencia_par)}>
-                    {formatearDiferencia(ultima.diferencia_par)}
-                  </span>
-                </p>
+              {datosTendencia.length === 0 ? (
+                <EstadoVacio
+                  icono="⛳"
+                  titulo="Aún no hay datos"
+                  descripcion="Registra tu primera vuelta y aquí verás tu evolución ronda a ronda."
+                  accion={{ a: '/rondas/nueva', texto: 'Registrar mi primera ronda' }}
+                />
+              ) : (
+                <div className="panel-tendencia">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart
+                      data={datosTendencia}
+                      margin={{ top: 8, right: 4, left: -28, bottom: 0 }}
+                    >
+                      <defs>
+                        <linearGradient id="degradadoVoltio" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={COLORES.voltio} stopOpacity={0.22} />
+                          <stop offset="100%" stopColor={COLORES.voltio} stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid
+                        vertical={false}
+                        stroke={COLORES.rejilla}
+                        strokeDasharray="0"
+                      />
+                      <XAxis dataKey="fecha" {...ESTILO_EJE} />
+                      <YAxis {...ESTILO_EJE} width={54} />
+                      <Tooltip
+                        contentStyle={ESTILO_TOOLTIP}
+                        labelFormatter={(valor, carga) =>
+                          carga?.[0] ? `${carga[0].payload.campo} · ${valor}` : valor
+                        }
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="Sobre par"
+                        stroke={COLORES.voltio}
+                        strokeWidth={3}
+                        fill="url(#degradadoVoltio)"
+                        dot={{ r: 3, fill: COLORES.voltio, strokeWidth: 0 }}
+                        activeDot={{ r: 5 }}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
               )}
-            </div>
-            {ultima && (
-              <Link to={`/rondas/${ultima.id}`} className="btn-texto">
-                Ver tarjeta completa →
-              </Link>
-            )}
+            </section>
+
+            <section className="tarjeta-tabla">
+              <div className="tarjeta-tabla-cabecera">
+                <span className="etiqueta-campo">Últimas rondas</span>
+                <Link to="/rondas" className="btn-texto">
+                  Ver todas
+                </Link>
+              </div>
+
+              {rondas.length === 0 ? (
+                <EstadoVacio
+                  icono="📋"
+                  titulo="Todavía no hay rondas"
+                  descripcion="Cuando registres una vuelta aparecerá aquí con su resultado."
+                />
+              ) : (
+                <div className="tabla-envoltorio tabla-sin-marco">
+                  <table className="tabla tabla-clicable">
+                    <thead>
+                      <tr>
+                        <th scope="col" className="alinear-izquierda">
+                          Campo
+                        </th>
+                        <th scope="col">Fecha</th>
+                        <th scope="col">Golpes</th>
+                        <th scope="col">Par</th>
+                        <th scope="col">Hoyos</th>
+                        <th scope="col">Putts</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rondas.map((ronda) => (
+                        <tr
+                          key={ronda.id}
+                          tabIndex={0}
+                          onClick={() => navegar(`/rondas/${ronda.id}`)}
+                          onKeyDown={(e) => e.key === 'Enter' && navegar(`/rondas/${ronda.id}`)}
+                        >
+                          <td className="alinear-izquierda">{ronda.course.name}</td>
+                          <td className="texto-tenue">{formatearFecha(ronda.played_on)}</td>
+                          <td className="texto-fuerte">{ronda.total_strokes}</td>
+                          <td className={claseDiferencia(ronda.diferencia_par)}>
+                            {formatearDiferencia(ronda.diferencia_par)}
+                          </td>
+                          <td className="texto-tenue">{ronda.holes_played}</td>
+                          <td className="texto-tenue">{ronda.total_putts ?? '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
           </div>
 
-          {!ultima ? (
-            <EstadoVacio
-              titulo="Aún no has registrado ninguna ronda"
-              descripcion="Registra tu primera vuelta y empezarás a ver aquí tu progreso hoyo a hoyo."
-              accion={{ a: '/rondas/nueva', texto: 'Registrar mi primera ronda' }}
-            />
-          ) : (
-            <div className="panel-grafica">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={datosGrafica} margin={{ top: 10, right: 8, left: -22, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#3b5c40" />
-                  <XAxis dataKey="hoyo" stroke="#aab8ac" tickLine={false} fontSize={12} />
-                  <YAxis stroke="#aab8ac" tickLine={false} fontSize={12} allowDecimals={false} />
-                  <Tooltip
-                    contentStyle={ESTILO_TOOLTIP}
-                    labelFormatter={(valor) => `Hoyo ${valor}`}
-                    cursor={{ fill: 'rgba(255,255,255,0.06)' }}
-                  />
-                  <Legend wrapperStyle={{ fontSize: 13, paddingTop: 8 }} />
-                  <Bar dataKey="Par" fill="#60a667" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="Golpes" fill="#c1e9b6" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+          <div className="panel-columna panel-lateral">
+            <div className="panel-metricas">
+              <article className="metrica">
+                <span className="metrica-etiqueta">Greenes</span>
+                <span className="cifra metrica-valor">
+                  {resumen?.porcentaje_greenes === null ? '—' : `${resumen?.porcentaje_greenes}%`}
+                </span>
+                <span className="metrica-nota">En regulación</span>
+              </article>
+              <article className="metrica">
+                <span className="metrica-etiqueta">Calles</span>
+                <span className="cifra metrica-valor">
+                  {resumen?.porcentaje_calles === null ? '—' : `${resumen?.porcentaje_calles}%`}
+                </span>
+                <span className="metrica-nota">Par 4 y 5</span>
+              </article>
+              <article className="metrica">
+                <span className="metrica-etiqueta">Putts / hoyo</span>
+                <span className="cifra metrica-valor">
+                  {resumen?.media_putts_18
+                    ? formatearNumero(resumen.media_putts_18 / 18, 2)
+                    : '—'}
+                </span>
+                <span className="metrica-nota">Media</span>
+              </article>
+              <article className="metrica">
+                <span className="metrica-etiqueta">Media 18h</span>
+                <span className="cifra metrica-valor">
+                  {formatearNumero(resumen?.media_golpes_18)}
+                </span>
+                <span className="metrica-nota">
+                  {formatearDiferencia(
+                    resumen?.media_sobre_par_18 == null
+                      ? null
+                      : Math.round(resumen.media_sobre_par_18),
+                  )}{' '}
+                  sobre par
+                </span>
+              </article>
             </div>
-          )}
-        </section>
 
-        <section className="panel-accesos">
-          <Link to="/rondas" className="panel-acceso">
-            <span aria-hidden="true">📋</span>
-            <strong>Mis rondas</strong>
-            <span className="texto-tenue">Historial completo de vueltas</span>
-          </Link>
-          <Link to="/torneos" className="panel-acceso">
-            <span aria-hidden="true">🏆</span>
-            <strong>Torneos</strong>
-            <span className="texto-tenue">
-              {resumen?.total_torneos ?? 0} competiciones registradas
-            </span>
-          </Link>
-          <Link to="/estadisticas" className="panel-acceso">
-            <span aria-hidden="true">📊</span>
-            <strong>Estadísticas</strong>
-            <span className="texto-tenue">Dónde ganas y pierdes golpes</span>
-          </Link>
-        </section>
+            <section className="tarjeta panel-resumen">
+              <span className="etiqueta-campo">Tu juego en cifras</span>
+
+              <ul className="panel-lista">
+                <li>
+                  <span>Rondas jugadas</span>
+                  <span className="texto-fuerte">{resumen?.total_rondas ?? 0}</span>
+                </li>
+                <li>
+                  <span>Hoyos anotados</span>
+                  <span className="texto-fuerte">{resumen?.total_hoyos ?? 0}</span>
+                </li>
+                <li>
+                  <span>Mejor ronda</span>
+                  <span className={`texto-fuerte ${claseDiferencia(resumen?.mejor_ronda_sobre_par)}`}>
+                    {formatearDiferencia(resumen?.mejor_ronda_sobre_par)}
+                  </span>
+                </li>
+                <li>
+                  <span>Torneos</span>
+                  <span className="texto-fuerte">{resumen?.total_torneos ?? 0}</span>
+                </li>
+                <li>
+                  <span>Rondas en torneo</span>
+                  <span className="texto-fuerte">{resumen?.rondas_en_torneo ?? 0}</span>
+                </li>
+              </ul>
+
+              <div className="panel-atajos">
+                <Link to="/estadisticas" className="btn btn-secundario btn-pequeno">
+                  Estadísticas
+                </Link>
+                <Link to="/torneos" className="btn btn-secundario btn-pequeno">
+                  Torneos
+                </Link>
+              </div>
+            </section>
+          </div>
+        </div>
       </div>
     </div>
   )

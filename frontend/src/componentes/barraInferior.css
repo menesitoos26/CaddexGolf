@@ -1,0 +1,67 @@
+/* Barra inferior tipo app. Se respeta el safe area del iPhone. */
+
+.barra-inferior {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 90;
+  background-color: var(--barra);
+  border-top: 1px solid var(--linea);
+  padding: 12px 22px calc(14px + env(safe-area-inset-bottom, 12px));
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.barra-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 56px;
+  color: var(--acero);
+  font-size: 10px;
+  text-align: center;
+}
+
+.barra-item.activo {
+  color: var(--marca-texto);
+}
+
+.barra-item:hover {
+  color: var(--hueso);
+}
+
+.barra-item.activo:hover {
+  color: var(--marca-texto);
+}
+
+/* El botón principal sobresale de la barra: es la acción que más se usa. */
+.barra-boton {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-top: -30px;
+  border-radius: 18px;
+  background-color: var(--acento);
+  color: var(--acento-texto);
+  flex-shrink: 0;
+}
+
+.barra-boton:hover {
+  background-color: var(--acento-fuerte);
+  color: var(--acento-texto);
+}
+
+@media (max-width: 980px) {
+  .barra-inferior {
+    display: flex;
+  }
+
+  /* Hueco para que la barra no tape el final del contenido. */
+  .pagina {
+    padding-bottom: calc(104px + env(safe-area-inset-bottom, 12px));
+  }
+}

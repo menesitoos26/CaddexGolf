@@ -156,6 +156,9 @@ class RoundHole(Base):
     strokes: Mapped[int] = mapped_column(Integer, nullable=False)
     putts: Mapped[int | None] = mapped_column(Integer, nullable=True)
     fairway_hit: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    # Hacia dónde se falló la calle: 'izquierda' | 'centro' | 'derecha'.
+    # Saber que siempre fallas al mismo lado es más útil que un simple sí/no.
+    fairway_side: Mapped[str | None] = mapped_column(String(10), nullable=True)
     green_in_regulation: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
     penalties: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
@@ -165,4 +168,8 @@ class RoundHole(Base):
         UniqueConstraint("round_id", "hole_number", name="uq_round_hole"),
         CheckConstraint("par BETWEEN 3 AND 6", name="ck_hole_par"),
         CheckConstraint("strokes BETWEEN 1 AND 20", name="ck_hole_strokes"),
+        CheckConstraint(
+            "fairway_side IS NULL OR fairway_side IN ('izquierda', 'centro', 'derecha')",
+            name="ck_hole_fairway_side",
+        ),
     )

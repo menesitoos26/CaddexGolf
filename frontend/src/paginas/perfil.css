@@ -1,39 +1,47 @@
 .perfil-resumen {
   display: flex;
   align-items: center;
-  gap: 18px;
-  background-color: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--radio-md);
-  padding: 22px;
+  gap: 20px;
+  background-color: var(--carbon-2);
+  border: 1px solid var(--linea);
+  border-radius: 18px;
+  padding: 24px;
 }
 
 .perfil-avatar {
   display: grid;
   place-items: center;
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background-color: var(--verde-brillante);
-  color: var(--verde-profundo);
-  font-family: var(--fuente-titulos);
-  font-size: 23px;
-  font-weight: 800;
+  width: 72px;
+  height: 72px;
+  border-radius: 22px;
+  background-color: var(--superficie-2);
+  border: 1px solid var(--linea);
+  color: var(--marca-texto);
+  font-family: var(--titulos);
+  font-size: 24px;
+  font-weight: 600;
   flex-shrink: 0;
 }
 
 .perfil-resumen h2 {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--texto-claro);
-  margin: 0 0 3px;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0 0 4px;
 }
 
 .perfil-resumen p {
   margin: 0;
   font-size: 14px;
+  color: var(--acero);
 }
 
 .perfil-formulario {
-  max-width: 720px;
+  max-width: 760px;
+}
+
+.perfil-subtitulo {
+  margin: 12px 0 0;
+  padding-top: 22px;
+  border-top: 1px solid var(--linea);
 }

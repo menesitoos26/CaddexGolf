@@ -1,277 +1,245 @@
+/* Portada pública, mismo sistema: carbón, voltio y mucho aire */
+
 .publica-pagina {
-    width: 100%;
-    min-height: 100vh;
-    background-color: var(--blanco-crema, #F4F7F2);
-    color: var(--verde-oscuro, rgb(45, 80, 50));
-    overflow-x: hidden;
+  background-color: var(--fondo);
+  color: var(--hueso);
+  overflow-x: hidden;
 }
 
 /* --- HERO --- */
+
 .publica-hero {
-    width: 100%;
-    min-height: 65vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    background: linear-gradient(rgba(35, 65, 40, 0.72), rgba(45, 80, 50, 0.78)), url('/imagen1.jpg');
-    background-size: cover;
-    background-position: center;
-    padding: 100px 20px;
-    box-sizing: border-box;
+  padding: 112px 0 96px;
+  border-bottom: 1px solid var(--linea);
 }
 
 .publica-hero-contenido {
-    max-width: 720px;
-    color: var(--blanco-crema, #F4F7F2);
+  width: min(1240px, 100% - 48px);
+  margin: 0 auto;
+  max-width: 820px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 .publica-kicker {
-    display: inline-block;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--verde-brillante, rgb(193, 233, 182));
-    margin-bottom: 14px;
+  font-family: var(--titulos);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--marca-texto);
 }
 
 .publica-hero-contenido h1 {
-    font-family: var(--fuente-titulos, sans-serif);
-    font-size: 46px;
-    font-weight: 800;
-    line-height: 1.2;
-    margin: 0 0 18px;
+  font-size: clamp(38px, 7vw, 68px);
+  font-weight: 600;
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+  margin: 0;
 }
 
 .publica-hero-contenido p {
-    font-size: 17px;
-    line-height: 1.6;
-    color: rgba(244, 247, 242, 0.9);
-    margin: 0 auto 32px;
-    max-width: 560px;
+  margin: 0;
+  max-width: 620px;
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--acero);
 }
 
 .publica-hero-botones {
-    display: flex;
-    gap: 16px;
-    justify-content: center;
-    flex-wrap: wrap;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
 }
 
-/* --- BOTONES COMUNES --- */
-.btn-publica {
-    text-decoration: none;
-    padding: 13px 30px;
-    border-radius: var(--radio-pill, 999px);
-    font-weight: 700;
-    font-size: 15px;
-    transition: all 0.25s ease;
-    display: inline-block;
-}
+/* --- SECCIONES --- */
 
-.btn-publica-primario {
-    background-color: var(--verde-brillante, rgb(193, 233, 182));
-    color: var(--verde-oscuro, rgb(45, 80, 50));
-    box-shadow: var(--sombra-suave, 0 4px 14px rgba(0,0,0,0.2));
-}
-
-.btn-publica-primario:hover {
-    background-color: #ffffff;
-    transform: translateY(-2px);
-}
-
-.btn-publica-secundario {
-    border: 2px solid var(--blanco-crema, #F4F7F2);
-    color: var(--blanco-crema, #F4F7F2);
-    background: transparent;
-}
-
-.btn-publica-secundario:hover {
-    background-color: rgba(244, 247, 242, 0.12);
-    transform: translateY(-2px);
-}
-
-/* --- SECCIONES GENERALES --- */
 .publica-seccion {
-    padding: 70px 20px;
-    text-align: center;
-    max-width: 1100px;
-    margin: 0 auto;
+  width: min(1240px, 100% - 48px);
+  margin: 0 auto;
+  padding: 88px 0;
 }
 
-.publica-seccion-alterna {
-    background-color: rgba(193, 233, 182, 0.25);
-    max-width: 100%;
-    border-radius: 0;
+.publica-seccion-cabecera {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  border-top: 1px solid var(--linea);
+  padding-top: 20px;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+}
+
+.publica-seccion-numero {
+  font-family: var(--titulos);
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  color: var(--acero);
 }
 
 .publica-titulo-seccion {
-    font-family: var(--fuente-titulos, sans-serif);
-    font-size: 30px;
-    font-weight: 800;
-    color: var(--verde-header, rgb(65, 105, 70));
-    margin-bottom: 12px;
+  font-family: var(--titulos);
+  font-weight: 600;
+  font-size: 24px;
+  letter-spacing: -0.02em;
+  margin: 0;
 }
 
 .publica-subtitulo-seccion {
-    font-size: 15px;
-    color: rgb(54, 94, 58);
-    max-width: 540px;
-    margin: 0 auto 40px;
-    line-height: 1.6;
+  font-size: 13px;
+  color: var(--acero);
+  margin: 0;
 }
 
-/* --- GRID CARACTERÍSTICAS --- */
+/* --- TARJETAS --- */
+
 .publica-grid-caracteristicas {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
 }
 
 .publica-tarjeta {
-    background-color: #ffffff;
-    border: 1px solid rgba(65, 105, 70, 0.12);
-    border-radius: var(--radio-lg, 16px);
-    padding: 28px 20px;
-    text-align: left;
-    box-shadow: var(--sombra-suave, 0 4px 14px rgba(0,0,0,0.06));
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  background-color: var(--carbon-2);
+  border: 1px solid var(--linea);
+  border-radius: var(--r);
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: border-color 0.16s ease;
 }
 
 .publica-tarjeta:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--sombra-tarjeta, 0 10px 24px rgba(0,0,0,0.12));
+  border-color: var(--acero);
 }
 
 .publica-icono {
-    font-size: 28px;
-    display: inline-block;
-    margin-bottom: 12px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background-color: var(--superficie-2);
+  border: 1px solid var(--linea);
+  font-size: 20px;
 }
 
 .publica-tarjeta h3 {
-    font-family: var(--fuente-titulos, sans-serif);
-    font-size: 17px;
-    margin-bottom: 8px;
-    color: var(--verde-header, rgb(65, 105, 70));
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0;
 }
 
 .publica-tarjeta p {
-    font-size: 14px;
-    line-height: 1.55;
-    color: #4a5b4c;
-    margin: 0;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--acero);
 }
 
 /* --- PASOS --- */
+
 .publica-pasos {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 30px;
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 0 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
 }
 
 .publica-paso {
-    text-align: center;
+  background-color: var(--carbon-2);
+  border: 1px solid var(--linea);
+  border-radius: var(--r);
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .publica-paso-numero {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background-color: var(--verde-header, rgb(65, 105, 70));
-    color: var(--blanco-crema, #F4F7F2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--fuente-titulos, sans-serif);
-    font-weight: 800;
-    font-size: 20px;
-    margin: 0 auto 16px;
+  font-family: var(--titulos);
+  font-weight: 700;
+  font-size: 40px;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--marca-texto);
 }
 
 .publica-paso h3 {
-    font-family: var(--fuente-titulos, sans-serif);
-    font-size: 17px;
-    margin-bottom: 8px;
-    color: var(--verde-header, rgb(65, 105, 70));
+  font-size: 17px;
+  font-weight: 600;
+  margin: 0;
 }
 
 .publica-paso p {
-    font-size: 14px;
-    line-height: 1.55;
-    color: #4a5b4c;
-    margin: 0;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--acero);
 }
 
-/* --- CTA FINAL --- */
+/* --- CTA --- */
+
 .publica-cta {
-    text-align: center;
-    padding: 70px 20px;
-    background-color: var(--verde-oscuro, rgb(45, 80, 50));
-    color: var(--blanco-crema, #F4F7F2);
+  width: min(1240px, 100% - 48px);
+  margin: 0 auto 88px;
+  background-color: var(--carbon-2);
+  border: 1px solid var(--linea);
+  border-radius: var(--r-lg);
+  padding: 64px 40px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
 }
 
 .publica-cta h2 {
-    font-family: var(--fuente-titulos, sans-serif);
-    font-size: 28px;
-    margin-bottom: 10px;
+  font-size: clamp(26px, 4vw, 34px);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  margin: 0;
 }
 
 .publica-cta p {
-    margin: 0 0 26px;
-    color: rgba(244, 247, 242, 0.85);
+  margin: 0;
+  color: var(--acero);
+  font-size: 15px;
 }
 
-/* --- FOOTER --- */
+.publica-cta .btn {
+  margin-top: 10px;
+}
+
+/* --- PIE --- */
+
 .publica-footer {
-    text-align: center;
-    padding: 22px 20px;
-    background-color: var(--verde-profundo, rgb(35, 65, 40));
-    color: rgba(244, 247, 242, 0.7);
-    font-size: 13px;
+  border-top: 1px solid var(--linea);
+  padding: 28px 24px;
+  text-align: center;
+  color: var(--acero-apagado);
+  font-size: 13px;
 }
 
 .publica-footer p {
-    margin: 0;
+  margin: 0;
 }
 
-/* --- RESPONSIVE --- */
-@media (max-width: 900px) {
-    .publica-grid-caracteristicas {
-        grid-template-columns: repeat(2, 1fr);
-    }
+@media (max-width: 640px) {
+  .publica-hero {
+    padding: 72px 0 64px;
+  }
 
-    .publica-pasos {
-        grid-template-columns: 1fr;
-        gap: 40px;
-    }
-}
+  .publica-seccion {
+    padding: 64px 0;
+  }
 
-@media (max-width: 600px) {
-    .publica-hero-contenido h1 {
-        font-size: 32px;
-    }
-
-    .publica-hero {
-        padding: 70px 16px;
-    }
-
-    .publica-grid-caracteristicas {
-        grid-template-columns: 1fr;
-    }
-
-    .publica-hero-botones {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .btn-publica {
-        width: 100%;
-        max-width: 280px;
-        text-align: center;
-    }
+  .publica-hero-botones .btn {
+    width: 100%;
+  }
 }

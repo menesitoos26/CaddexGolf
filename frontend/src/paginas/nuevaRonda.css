@@ -1,93 +1,151 @@
+/* Marcador: cuatro cifras grandes separadas por líneas, sin adornos */
+
 .marcador {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 2px;
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: var(--radio-md);
+  background-color: var(--carbon-2);
+  border: 1px solid var(--linea);
+  border-radius: var(--r-lg);
   overflow: hidden;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 }
 
 .marcador-dato {
-  background-color: var(--verde-profundo);
-  padding: 18px;
-  text-align: center;
+  padding: 22px 24px;
+  border-right: 1px solid var(--linea);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.marcador-dato:last-child {
+  border-right: none;
 }
 
 .marcador-dato span {
-  display: block;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  letter-spacing: 0.7px;
-  color: var(--texto-tenue);
-  margin-bottom: 6px;
+  color: var(--acero);
 }
 
 .marcador-dato strong {
-  font-family: var(--fuente-titulos);
-  font-size: 28px;
-  font-weight: 800;
-  color: var(--texto-claro);
+  font-family: var(--titulos);
+  font-weight: 700;
+  font-size: 36px;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
 }
 
 .tarjeta-encabezado {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
-  gap: 14px;
+  gap: 16px;
   flex-wrap: wrap;
+  margin-bottom: 16px;
 }
 
+.tarjeta-encabezado .seccion-titulo {
+  margin: 0;
+}
+
+.modo-captura {
+  flex: 0 0 auto;
+}
+
+.tarjeta-detalle-conmutador {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.celda-calle {
+  width: 88px;
+  height: 44px;
+  padding: 0 6px;
+  border: 1px solid var(--linea);
+  border-radius: 12px;
+  background-color: var(--superficie-2);
+  color: var(--hueso);
+  font-size: 13px;
+  text-align: center;
+}
+
+.celda-calle:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.celda-calle option {
+  background-color: var(--carbon-2);
+}
+
+/* --- Tarjeta de puntuación --- */
+
 .tabla-tarjeta {
-  min-width: 460px;
+  min-width: 480px;
 }
 
 .tabla-tarjeta .celda-hoyo {
-  background-color: rgba(255, 255, 255, 0.06);
-  color: var(--texto-claro);
-  font-weight: 800;
-  width: 62px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  width: 68px;
+  font-family: var(--titulos);
+  font-weight: 600;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  color: var(--acero);
 }
 
 .tabla-tarjeta input[type='number'],
 .tabla-tarjeta select {
-  width: 72px;
-  padding: 7px 8px;
+  width: 68px;
+  height: 44px;
+  padding: 0 8px;
   text-align: center;
-  border-radius: var(--radio-sm);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background-color: rgba(0, 0, 0, 0.25);
-  color: var(--texto-claro);
-  font-size: 15px;
+  border: 1px solid var(--linea);
+  border-radius: 12px;
+  background-color: var(--superficie-2);
+  color: var(--hueso);
+  font-family: var(--titulos);
+  font-size: 16px;
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .tabla-tarjeta input[type='number']:focus,
 .tabla-tarjeta select:focus {
   outline: none;
-  border-color: var(--verde-suave);
-  box-shadow: 0 0 0 3px rgba(96, 166, 103, 0.28);
+  border-color: var(--acento);
+}
+
+/* El hoyo ya anotado se rellena en voltio, como el hoyo activo del diseño. */
+.tabla-tarjeta input[type='number'].anotado {
+  background-color: var(--acento);
+  border-color: var(--acento);
+  color: var(--acento-texto);
+  font-weight: 700;
 }
 
 .tabla-tarjeta select option {
-  background-color: var(--verde-profundo);
+  background-color: var(--carbon-2);
+  color: var(--hueso);
 }
 
 .casilla {
-  width: 19px;
-  height: 19px;
-  accent-color: var(--verde-suave);
+  width: 20px;
+  height: 20px;
+  accent-color: var(--acento);
   cursor: pointer;
 }
 
 .casilla:disabled {
-  opacity: 0.3;
+  opacity: 0.25;
   cursor: not-allowed;
 }
 
-/* Quitamos las flechitas del input numérico: molestan al teclear rápido. */
+/* Sin flechitas: molestan al teclear rápido en el campo */
 .tabla-tarjeta input[type='number']::-webkit-outer-spin-button,
 .tabla-tarjeta input[type='number']::-webkit-inner-spin-button {
   -webkit-appearance: none;
@@ -97,4 +155,14 @@
 .tabla-tarjeta input[type='number'] {
   -moz-appearance: textfield;
   appearance: textfield;
+}
+
+@media (max-width: 640px) {
+  .marcador-dato {
+    padding: 18px;
+  }
+
+  .marcador-dato strong {
+    font-size: 28px;
+  }
 }

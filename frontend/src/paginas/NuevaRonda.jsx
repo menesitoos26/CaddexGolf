@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { api } from '../api/cliente'
+import CapturaHoyo from '../componentes/CapturaHoyo'
 import { useAuth } from '../hooks/useAuth'
 import { useNotificaciones } from '../hooks/useNotificaciones'
 import { claseDiferencia, formatearDiferencia, hoyIso } from '../utils/formato'
@@ -17,9 +18,14 @@ function tarjetaInicial(numeroDeHoyos) {
     par: PARES_ESTANDAR[indice],
     strokes: '',
     putts: '',
-    fairway_hit: null,
+    fairway_side: null,
     green_in_regulation: null,
   }))
+}
+
+/** En móvil el modo guiado es el que tiene sentido; en escritorio, la tabla. */
+function modoInicial() {
+  return window.matchMedia('(max-width: 980px)').matches ? 'guiado' : 'tarjeta'
 }
 
 export default function NuevaRonda() {
@@ -29,6 +35,8 @@ export default function NuevaRonda() {
   const { actualizarUsuario } = useAuth()
 
   const [hoyos, setHoyos] = useState(() => tarjetaInicial(18))
+  const [modo, setModo] = useState(modoInicial)
+  const [indiceHoyo, setIndiceHoyo] = useState(0)
   const [campo, setCampo] = useState({ name: '', city: '', country: '' })
   const [sugerencias, setSugerencias] = useState([])
   const [torneos, setTorneos] = useState([])
@@ -55,6 +63,7 @@ export default function NuevaRonda() {
   useEffect(() => {
     const texto = campo.name.trim()
     if (texto.length < 3) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSugerencias([])
       return undefined
     }
@@ -76,11 +85,22 @@ export default function NuevaRonda() {
       // Conservamos lo ya introducido al ampliar o reducir el recorrido.
       return nueva.map((hoyo, indice) => anteriores[indice] ?? hoyo)
     })
+    setIndiceHoyo((actual) => Math.min(actual, cantidad - 1))
   }
 
+  /**
+   * `valor` puede ser un valor suelto o una función que recibe el hoyo actual.
+   * La forma de función es imprescindible para los botones +/−: si se calculara
+   * el nuevo valor fuera del setState, dos toques rápidos seguidos leerían el
+   * mismo estado y uno de los dos se perdería.
+   */
   const cambiarHoyo = (indice, propiedad, valor) => {
     setHoyos((anteriores) =>
-      anteriores.map((hoyo, i) => (i === indice ? { ...hoyo, [propiedad]: valor } : hoyo)),
+      anteriores.map((hoyo, i) =>
+        i === indice
+          ? { ...hoyo, [propiedad]: typeof valor === 'function' ? valor(hoyo) : valor }
+          : hoyo,
+      ),
     )
   }
 
@@ -101,7 +121,7 @@ export default function NuevaRonda() {
   }, [hoyos])
 
   const guardar = async (evento) => {
-    evento.preventDefault()
+    evento?.preventDefault()
     setError('')
 
     if (!campo.name.trim()) {
@@ -109,13 +129,17 @@ export default function NuevaRonda() {
       return
     }
 
-    const incompletos = hoyos.filter((hoyo) => hoyo.strokes === '' || Number(hoyo.strokes) < 1)
-    if (incompletos.length > 0) {
+    const primeroSinAnotar = hoyos.findIndex(
+      (hoyo) => hoyo.strokes === '' || Number(hoyo.strokes) < 1,
+    )
+    if (primeroSinAnotar !== -1) {
+      const pendientes = hoyos.filter((h) => h.strokes === '' || Number(h.strokes) < 1).length
       setError(
-        `Falta anotar los golpes en ${incompletos.length} ${
-          incompletos.length === 1 ? 'hoyo' : 'hoyos'
-        }. Si no jugaste el recorrido entero, cambia arriba a 9 hoyos.`,
+        `Falta anotar los golpes en ${pendientes} ${pendientes === 1 ? 'hoyo' : 'hoyos'}. ` +
+          'Si no jugaste el recorrido entero, cambia el recorrido a 9 hoyos.',
       )
+      // Llevamos al jugador directamente al primer hoyo que le falta.
+      setIndiceHoyo(primeroSinAnotar)
       return
     }
 
@@ -136,7 +160,7 @@ export default function NuevaRonda() {
           par: Number(hoyo.par),
           strokes: Number(hoyo.strokes),
           putts: hoyo.putts === '' ? null : Number(hoyo.putts),
-          fairway_hit: hoyo.fairway_hit,
+          fairway_side: hoyo.fairway_side,
           green_in_regulation: hoyo.green_in_regulation,
         })),
       })
@@ -283,18 +307,54 @@ export default function NuevaRonda() {
 
           <section className="seccion">
             <div className="tarjeta-encabezado">
-              <h2 className="seccion-titulo">Tarjeta</h2>
-              <button
-                type="button"
-                className="btn-texto"
-                onClick={() => setDetalleAbierto((abierto) => !abierto)}
-                aria-expanded={detalleAbierto}
-              >
-                {detalleAbierto ? '− Ocultar putts y calles' : '+ Añadir putts, calles y greenes'}
-              </button>
+              <h2 className="seccion-titulo">
+                {modo === 'guiado' ? 'Registro hoyo a hoyo' : 'Tarjeta'}
+              </h2>
+
+              <div className="segmentado modo-captura">
+                <button
+                  type="button"
+                  aria-pressed={modo === 'guiado'}
+                  onClick={() => setModo('guiado')}
+                >
+                  Hoyo a hoyo
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={modo === 'tarjeta'}
+                  onClick={() => setModo('tarjeta')}
+                >
+                  Tarjeta
+                </button>
+              </div>
             </div>
 
-            <div className="tabla-envoltorio">
+            {modo === 'guiado' ? (
+              <CapturaHoyo
+                hoyos={hoyos}
+                indice={indiceHoyo}
+                campo={campo.name}
+                onCambiarHoyo={cambiarHoyo}
+                onIrA={(i) => setIndiceHoyo(Math.max(0, Math.min(hoyos.length - 1, i)))}
+                onGuardar={guardar}
+                guardando={guardando}
+              />
+            ) : (
+              <>
+                <div className="tarjeta-detalle-conmutador">
+                  <button
+                    type="button"
+                    className="btn-texto"
+                    onClick={() => setDetalleAbierto((abierto) => !abierto)}
+                    aria-expanded={detalleAbierto}
+                  >
+                    {detalleAbierto
+                      ? '− Ocultar putts y calles'
+                      : '+ Añadir putts, calles y greenes'}
+                  </button>
+                </div>
+
+                <div className="tabla-envoltorio">
               <table className="tabla tabla-tarjeta">
                 <thead>
                   <tr>
@@ -341,6 +401,7 @@ export default function NuevaRonda() {
                             max="20"
                             inputMode="numeric"
                             placeholder="—"
+                            className={hoyo.strokes !== '' ? 'anotado' : ''}
                             value={hoyo.strokes}
                             onChange={(e) => cambiarHoyo(indice, 'strokes', e.target.value)}
                             aria-label={`Golpes en el hoyo ${hoyo.hole_number}`}
@@ -362,17 +423,21 @@ export default function NuevaRonda() {
                               />
                             </td>
                             <td>
-                              <input
-                                type="checkbox"
-                                className="casilla"
-                                // En los par 3 no se cuenta la calle.
+                              <select
+                                className="celda-calle"
+                                // En los par 3 se entra al green de salida.
                                 disabled={Number(hoyo.par) < 4}
-                                checked={hoyo.fairway_hit === true}
+                                value={hoyo.fairway_side ?? ''}
                                 onChange={(e) =>
-                                  cambiarHoyo(indice, 'fairway_hit', e.target.checked)
+                                  cambiarHoyo(indice, 'fairway_side', e.target.value || null)
                                 }
-                                aria-label={`Calle acertada en el hoyo ${hoyo.hole_number}`}
-                              />
+                                aria-label={`Calle en el hoyo ${hoyo.hole_number}`}
+                              >
+                                <option value="">—</option>
+                                <option value="izquierda">Izq.</option>
+                                <option value="centro">Calle</option>
+                                <option value="derecha">Der.</option>
+                              </select>
                             </td>
                             <td>
                               <input
@@ -394,9 +459,11 @@ export default function NuevaRonda() {
                       </tr>
                     )
                   })}
-                </tbody>
-              </table>
-            </div>
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
           </section>
 
           <section className="tarjeta seccion">
@@ -427,9 +494,12 @@ export default function NuevaRonda() {
             >
               Cancelar
             </button>
-            <button type="submit" className="btn btn-primario" disabled={guardando}>
-              {guardando ? 'Guardando…' : 'Guardar ronda'}
-            </button>
+            {/* En modo guiado el botón de guardar vive en el pie de la captura. */}
+            {modo === 'tarjeta' && (
+              <button type="submit" className="btn btn-primario" disabled={guardando}>
+                {guardando ? 'Guardando…' : 'Guardar ronda'}
+              </button>
+            )}
           </div>
         </form>
       </div>

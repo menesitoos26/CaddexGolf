@@ -81,10 +81,14 @@ CREATE TABLE IF NOT EXISTS round_holes (
     strokes             INT NOT NULL,
     putts               INT DEFAULT NULL,
     fairway_hit         BOOLEAN DEFAULT NULL,
+    fairway_side        VARCHAR(10) DEFAULT NULL,
     green_in_regulation BOOLEAN DEFAULT NULL,
     penalties           INT NOT NULL DEFAULT 0,
     UNIQUE KEY uq_round_hole (round_id, hole_number),
     KEY ix_round_holes_round_id (round_id),
+    CONSTRAINT ck_hole_fairway_side CHECK (
+        fairway_side IS NULL OR fairway_side IN ('izquierda', 'centro', 'derecha')
+    ),
     CONSTRAINT ck_hole_par CHECK (par BETWEEN 3 AND 6),
     CONSTRAINT ck_hole_strokes CHECK (strokes BETWEEN 1 AND 20),
     CONSTRAINT ck_hole_number CHECK (hole_number BETWEEN 1 AND 18),

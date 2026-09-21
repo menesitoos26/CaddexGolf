@@ -88,6 +88,7 @@ def crear_ronda(datos: CrearRonda, usuario: UsuarioActual, db: SesionBD) -> Rond
                 strokes=h.strokes,
                 putts=h.putts,
                 fairway_hit=h.fairway_hit,
+                fairway_side=h.fairway_side,
                 green_in_regulation=h.green_in_regulation,
                 penalties=h.penalties,
             )

@@ -1,46 +1,66 @@
 .celda-numero-hoyo {
-  background-color: rgba(255, 255, 255, 0.06);
-  color: var(--texto-claro);
-  font-weight: 800;
-  padding: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  width: 72px;
+  font-family: var(--titulos);
+  font-weight: 600;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  color: var(--acero);
   white-space: nowrap;
 }
 
 .tabla tfoot td,
 .tabla tfoot th {
-  background-color: rgba(255, 255, 255, 0.05);
-  font-weight: 700;
-  color: var(--texto-claro);
-  border-top: 1px solid rgba(255, 255, 255, 0.14);
-  padding: 12px;
+  padding: 14px 20px;
   text-align: center;
+  font-family: var(--titulos);
+  font-weight: 600;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  color: var(--acero);
+  background-color: var(--superficie-2);
+  border-top: 1px solid var(--linea);
 }
 
 .tabla tfoot .fila-total td,
 .tabla tfoot .fila-total th {
-  background-color: var(--verde-medio);
-  font-size: 15px;
+  background-color: var(--carbon-3);
+  color: var(--hueso);
+  font-weight: 700;
+  font-size: 16px;
 }
 
 .detalle-selector-torneo {
   width: 100%;
-  margin-top: 2px;
-  padding: 9px 12px;
-  border-radius: var(--radio-sm);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background-color: rgba(0, 0, 0, 0.22);
-  color: var(--texto-claro);
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--linea);
+  border-radius: 12px;
+  background-color: var(--superficie-2);
+  color: var(--hueso);
   font-size: 14px;
-  font-weight: 600;
 }
 
 .detalle-selector-torneo:focus {
   outline: none;
-  border-color: var(--verde-suave);
-  box-shadow: 0 0 0 3px rgba(96, 166, 103, 0.28);
+  border-color: var(--acento);
 }
 
 .detalle-selector-torneo option {
-  background-color: var(--verde-profundo);
+  background-color: var(--carbon-2);
+}
+
+.detalle-acierto {
+  color: var(--marca-texto);
+  font-weight: 600;
+}
+
+.detalle-fallo {
+  color: var(--acero-apagado);
+}
+
+.detalle-notas {
+  margin: 0;
+  color: var(--acero);
+  font-size: 15px;
+  line-height: 1.7;
 }

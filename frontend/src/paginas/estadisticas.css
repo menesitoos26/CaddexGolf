@@ -1,26 +1,69 @@
 .rejilla-graficas {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(440px, 1fr));
+  gap: 20px;
+}
+
+/* Sin esto, el ResponsiveContainer de Recharts mide su ancho intrínseco y
+   ensancha la celda del grid, sacando la página de la pantalla. */
+.rejilla-graficas > * {
+  min-width: 0;
 }
 
 .grafica-mediana {
   width: 100%;
-  height: 280px;
+  min-width: 0;
+  height: 270px;
 }
 
 .estadisticas-nota {
-  margin: -8px 0 16px;
+  margin: 0 0 20px;
   font-size: 13px;
-  line-height: 1.5;
+  line-height: 1.6;
+  color: var(--acero);
 }
 
-@media (max-width: 700px) {
+/* "Dónde pierdes golpes": lista con barra de progreso */
+.lista-debilidades {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.debilidad {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.debilidad-fila {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.debilidad-fila strong {
+  font-family: var(--titulos);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.estadisticas-pie {
+  margin: 20px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--linea);
+  font-size: 13px;
+  color: var(--acero);
+  line-height: 1.6;
+}
+
+@media (max-width: 760px) {
   .rejilla-graficas {
     grid-template-columns: 1fr;
   }
 
   .grafica-mediana {
-    height: 240px;
+    height: 230px;
   }
 }

@@ -1,206 +1,192 @@
 <div align="center">
 
-# ⛳ Golf Tracker
+# Caddex Golf
 
-**Plataforma web para que el golfista amateur registre sus rondas, siga su progreso y descubra en qué mejorar.**
+**Apunta. Analiza. Mejora.**
 
-Proyecto Final de Grado · Desarrollo de Aplicaciones Web (DAW) · Joyfe
+Registra tus rondas y torneos hoyo a hoyo, calcula tu hándicap con el método del
+World Handicap System y descubre exactamente dónde estás perdiendo golpes.
 
-</div>
-
----
-
-## 📖 Sobre el proyecto
-
-Golf Tracker es una aplicación web pensada para el golfista aficionado. La idea surge de una necesidad real: muchos jugadores anotan sus tarjetas en papel y nunca llegan a entender cómo evoluciona su juego ni dónde pierden golpes. Esta plataforma digitaliza ese proceso y va un paso más allá, convirtiendo los datos de cada ronda en estadísticas útiles y comprensibles.
-
-El usuario registra su partida hoyo a hoyo, y la aplicación calcula automáticamente sus resultados, lleva el seguimiento de su handicap y le muestra su progreso a lo largo del tiempo mediante gráficas. El objetivo es que cualquier golfista, sin conocimientos técnicos, pueda sacar conclusiones sobre su juego.
-
-Más allá del producto en sí, este proyecto se ha abordado como una oportunidad para construir algo **a nivel profesional**: no solo "que funcione", sino que esté bien arquitecturado, contenerizado, con despliegue automatizado y pensado para poder crecer en el futuro. Por eso el repositorio refleja tanto el desarrollo de la aplicación como toda la capa de infraestructura y DevOps que la sostiene.
-
----
-
-## ✨ Qué hace la aplicación
-
-- **Gestión de cuentas.** Registro e inicio de sesión seguros, con contraseñas cifradas y sesiones gestionadas mediante tokens.
-- **Registro de rondas.** El jugador introduce su partida hoyo a hoyo: golpes, putts y si acertó la calle.
-- **Cálculo automático.** La aplicación suma los golpes, los compara con el par del campo y actualiza las estadísticas.
-- **Seguimiento del handicap.** Cada ronda contribuye a recalcular el nivel del jugador.
-- **Análisis y gráficas.** Visualización de la evolución del juego para identificar tendencias y puntos débiles.
-- **Datos reales de campos.** Integración con una API externa que proporciona información de miles de campos de golf.
-
----
-
-## 🏗️ Arquitectura
-
-La aplicación está construida como un conjunto de **servicios independientes contenerizados**, cada uno con una responsabilidad clara, comunicándose a través de una red privada y con un único punto de entrada al exterior.
-
-```
-                          Usuario (navegador)
-                                  │
-                                  ▼
-                    ┌─────────────────────────┐
-                    │   Nginx (proxy inverso)  │   ← único punto expuesto
-                    └─────────────────────────┘
-                        │                   │
-                  /  (la web)          /api/ (la API)
-                        │                   │
-                        ▼                   ▼
-              ┌──────────────┐      ┌──────────────┐
-              │   Frontend   │      │   Backend    │
-              │ React + Vite │      │   FastAPI    │
-              └──────────────┘      └──────────────┘
-                                            │
-                                            ▼
-                                    ┌──────────────┐
-                                    │    MySQL     │
-                                    └──────────────┘
-                                            │
-                                            ▼
-                                  Golf Course API (externa)
-```
-
-**¿Por qué esta arquitectura?** Separar la aplicación en servicios permite que cada parte (web, API, base de datos) se desarrolle, escale y despliegue de forma independiente. Nginx actúa como recepcionista: recibe todo el tráfico y lo dirige al servicio adecuado según la URL, además de centralizar la seguridad. Exponer un solo puerto al exterior reduce la superficie de ataque y simplifica enormemente la gestión del HTTPS en producción.
-
----
-
-## 🛠️ Stack tecnológico y decisiones
-
-Cada tecnología se ha elegido por un motivo concreto, no por moda. Aquí está el razonamiento detrás de cada una.
-
-### Desarrollo de la aplicación
-
-- **React + Vite** — React es el estándar de la industria para interfaces, y Vite ofrece un entorno de desarrollo muy rápido con recarga instantánea.
-- **FastAPI (Python)** — framework moderno para APIs REST. Genera documentación interactiva automáticamente y es muy legible, ideal para un proyecto que debe poder explicarse y mantenerse.
-- **MySQL** — base de datos relacional. Los datos del proyecto (usuarios, rondas, hoyos) están muy relacionados entre sí, por lo que un modelo relacional encaja mejor que uno NoSQL. Además, las consultas estadísticas (medias, agrupaciones) se resuelven con SQL de forma natural.
-- **JWT + bcrypt** — para la autenticación. Las contraseñas nunca se guardan en claro: se cifran con bcrypt. Las sesiones se gestionan con tokens JWT, el estándar para APIs REST sin estado.
-
-### Infraestructura y DevOps
-
-- **Docker + Docker Compose** — contenerización. Garantiza que la aplicación funcione igual en cualquier máquina, eliminando el clásico "en mi equipo funcionaba". Todo el entorno se levanta con un solo comando.
-- **Nginx** — proxy inverso y servidor web. Dirige el tráfico y, en producción, gestiona el certificado HTTPS.
-- **GitHub Actions** — integración continua. Cada cambio se valida automáticamente antes de integrarse.
-- **AWS EC2, Cloudflare y Let's Encrypt** — previstos para el despliegue en producción con dominio propio y HTTPS.
-
-### Servicios externos
-
-- **Golf Course API** — proporciona los datos de los campos de golf, evitando tener que introducirlos manualmente.
-
----
-
-## 🗄️ Modelo de datos
-
-El esquema relacional se compone de cinco tablas conectadas entre sí:
-
-| Tabla | Qué guarda |
-|-------|------------|
-| `users` | Usuarios registrados y su handicap |
-| `courses` | Campos de golf |
-| `holes` | Los hoyos de cada campo, con su par y distancia |
-| `rounds` | Las rondas jugadas por cada usuario |
-| `hole_scores` | La puntuación de cada hoyo dentro de una ronda |
-
-Las relaciones clave: un **usuario** tiene muchas **rondas**; un **campo** tiene muchos **hoyos**; y cada **ronda** contiene las **puntuaciones** de los hoyos jugados. La integridad de los datos se protege mediante claves foráneas y borrado en cascada, de modo que nunca queden registros huérfanos.
-
----
-
-## ⚙️ Integración continua
-
-El repositorio cuenta con un pipeline de **GitHub Actions** que se ejecuta automáticamente en cada `push` o `pull request` a la rama principal. Su función es actuar como una red de seguridad: valida que cualquier cambio no rompe el proyecto antes de integrarlo.
-
-El workflow realiza tres comprobaciones:
-
-1. **Frontend** — instala dependencias y compila la aplicación React, detectando errores de build.
-2. **Backend** — instala las dependencias de Python y verifica que la API arranca sin errores.
-3. **Docker** — construye todas las imágenes para garantizar que el sistema completo se monta correctamente.
-
-Esto reproduce una práctica habitual en equipos profesionales y permite detectar fallos de forma temprana, en lugar de descubrirlos al integrar el trabajo de ambos.
-
----
-
-## 🚀 Puesta en marcha
-
-### Requisitos previos
-
-- [Docker Desktop](https://www.docker.com/products/docker-desktop)
-- [Git](https://git-scm.com/)
-- [Node.js](https://nodejs.org/) (solo necesario para desarrollar el frontend)
-
-### Instalación
-
-```bash
-# 1. Clonar el repositorio
-git clone https://github.com/menesitoos26/GolfTracker.git
-cd GolfTracker
-```
-
-
-> ⚠️ El archivo `.env` contiene información sensible y **no se incluye en el repositorio** por seguridad.
-
-```bash
-# 2. Levantar todo el entorno
-cd docker
-docker compose up -d --build
-```
-
-### Acceso
-
-| Servicio | URL |
-|----------|-----|
-| Aplicación web | http://localhost |
-| API | http://localhost/api/ |
-| Documentación de la API | http://localhost/api/docs |
-
-### Desarrollo del frontend
-
-Para trabajar en la interfaz con recarga instantánea, sin reconstruir Docker en cada cambio:
-
-```bash
-cd frontend
-npm install
-npm run dev   # disponible en http://localhost:5173
-```
-
----
-
-## 📂 Estructura del repositorio
-
-```
-GolfTracker/
-├── backend/                # API REST con FastAPI
-│   └── app/
-│       ├── main.py         # Punto de entrada
-│       ├── core/           # Seguridad, esquemas y dependencias
-│       ├── db/             # Conexión a la base de datos
-│       └── routers/        # Endpoints (auth, rondas, estadísticas)
-├── frontend/               # Aplicación web con React + Vite
-│   └── src/secciones/      # Vistas y componentes
-├── docker/                 # Orquestación del entorno
-│   ├── docker-compose.yml
-│   ├── init.sql            # Esquema inicial de la base de datos
-│   └── nginx/              # Configuración del proxy inverso
-├── .github/workflows/      # Pipeline de integración continua
-└── README.md
-```
-
----
-
-## 👥 Equipo y reparto del trabajo
-
-El proyecto se ha organizado en dos áreas de responsabilidad bien diferenciadas, replicando la dinámica de un equipo de desarrollo real:
-
-| Área | Responsable | Trabajo |
-|------|-------------|---------|
-| **Infraestructura y DevOps** | Alejandro Meneses | Contenerización con Docker, configuración de Nginx, integración continua con GitHub Actions, diseño de la arquitectura, despliegue y seguridad. |
-| **Desarrollo de la aplicación** | Juan López | Frontend en React, backend en FastAPI, modelo de datos y lógica de negocio. |
-
-Esta separación ha permitido trabajar en paralelo y aplicar un flujo de trabajo profesional basado en ramas, pull requests y entregas incrementales.
-
----
-
-
-<div align="center">
-
-*Proyecto desarrollado como Trabajo Fin de Grado del ciclo de Desarrollo de Aplicaciones Web.*
+Proyecto Final de Grado · Desarrollo de Aplicaciones Web (DAW)
 
 </div>
+
+---
+
+## Qué hace
+
+- **Cuentas de usuario.** Registro y login con contraseñas cifradas (bcrypt) y sesiones por token JWT.
+- **Registro de rondas en dos modos.** *Hoyo a hoyo* (pensado para usar de pie en el campo: botones
+  grandes, sin teclado, un hoyo por pantalla) o *tarjeta* completa en tabla, para anotar al terminar.
+- **Datos por hoyo.** Golpes, par, putts, green en regulación y dispersión de la salida
+  (izquierda / calle / derecha), que es lo que permite detectar un fallo sistemático.
+- **Historial de rondas.** Listado paginado, detalle hoyo a hoyo con parciales de ida y vuelta, y borrado.
+- **Torneos.** Agrupa varias rondas en una competición y consulta el acumulado y el puesto final.
+- **Hándicap automático.** Se recalcula con cada ronda siguiendo el WHS (ver más abajo).
+- **Estadísticas.** Evolución, reparto de resultados, media por tipo de hoyo, porcentajes de calle y
+  green, dispersión desde el tee y rendimiento por campo.
+
+---
+
+## Arquitectura
+
+```
+                        Usuario (navegador)
+                                │
+                                ▼
+                  ┌───────────────────────────┐
+                  │  Nginx (proxy inverso)    │  ← único puerto expuesto
+                  └───────────────────────────┘
+                      │                   │
+                  /  (web)           /api/  (API)
+                      │                   │
+                      ▼                   ▼
+            ┌──────────────┐      ┌──────────────┐
+            │   Frontend   │      │   Backend    │
+            │ React + Vite │      │   FastAPI    │
+            │ (nginx SPA)  │      │  SQLAlchemy  │
+            └──────────────┘      └──────────────┘
+                                          │
+                                          ▼
+                                  ┌──────────────┐
+                                  │    MySQL     │
+                                  └──────────────┘
+```
+
+### Estructura
+
+```
+backend/
+  app/
+    config.py      Configuración por variables de entorno
+    database.py    Motor y sesión de SQLAlchemy
+    models.py      Modelos ORM
+    schemas.py     Contratos de entrada/salida (Pydantic)
+    security.py    Hash de contraseñas y JWT
+    deps.py        Dependencias (usuario autenticado)
+    handicap.py    Cálculo del hándicap (WHS)
+    services.py    Lógica de negocio y estadísticas
+    routers/       auth · campos · rondas · torneos · estadisticas
+  tests/           58 tests con pytest
+frontend/
+  src/
+    api/           Cliente único de la API
+    contexto/      Sesión y notificaciones
+    componentes/   Encabezado, rutas protegidas, estados
+    paginas/       Una carpeta por pantalla
+    estilos/       Sistema de diseño (componentes.css)
+    utils/         Formato y estilos de gráficas
+docker/            docker-compose, init.sql, nginx y migraciones
+```
+
+---
+
+## Puesta en marcha
+
+### Opción A · En local, sin Docker
+
+Necesitas Python 3.12+ y Node 20+. Usa SQLite, así que no hay que instalar ninguna base de datos.
+
+**Backend:**
+
+```bash
+cd backend && python -m venv .venv && .venv/Scripts/python -m pip install -r requirements-dev.txt
+```
+
+Copia `backend/.env.example` a `backend/.env` y arranca:
+
+```bash
+cd backend && .venv/Scripts/python -m uvicorn app.main:app --reload
+```
+
+La API queda en `http://localhost:8000` y su documentación interactiva en `http://localhost:8000/docs`.
+
+**Frontend** (en otra terminal):
+
+```bash
+cd frontend && npm install && npm run dev
+```
+
+La web queda en `http://localhost:5173`. Vite redirige `/api` al backend, así que no hay que configurar nada más.
+
+### Opción B · Con Docker
+
+Copia `docker/.env.example` a `docker/.env`, rellena las claves y levanta todo:
+
+```bash
+cd docker && docker compose up -d --build
+```
+
+> `JWT_SECRET_KEY`, `MYSQL_ROOT_PASSWORD` y `MYSQL_PASSWORD` son obligatorias: si faltan, compose se niega a arrancar en vez de usar valores por defecto inseguros.
+
+---
+
+## Calidad
+
+```bash
+cd backend && .venv/Scripts/python -m pytest
+```
+
+```bash
+cd backend && .venv/Scripts/python -m ruff check .
+```
+
+```bash
+cd frontend && npm run lint
+```
+
+La CI de GitHub Actions ejecuta las tres cosas más la construcción de las imágenes Docker en cada push y cada PR a `main`.
+
+---
+
+## Cómo se calcula el hándicap
+
+Se sigue el World Handicap System en su variante para jugadores sin hándicap oficial:
+
+1. **Diferencial de cada ronda:** `(113 / slope) × (golpes ajustados − valoración del campo)`.
+   Si no se conocen la valoración y el slope del campo se usan los valores neutros
+   (valoración = par jugado, slope = 113), con lo que el diferencial queda en `golpes − par`.
+2. **Tope por hoyo:** los golpes de cada hoyo se limitan a `par + 5`, el máximo que marca el WHS
+   para jugadores sin hándicap establecido, para que un hoyo desastroso no distorsione el cálculo.
+3. **Rondas de 9 hoyos:** el diferencial se escala a 18 para poder mezclarlas con las vueltas completas.
+4. **Índice:** media de los N mejores diferenciales de las 20 rondas más recientes, según la tabla
+   oficial del WHS (con 3 rondas se toma el mejor menos 2.0; con 20, la media de los 8 mejores).
+   Hacen falta al menos 3 rondas y el índice se limita a 54.0.
+
+La implementación está en [handicap.py](backend/app/handicap.py) y sus tests en
+[test_handicap.py](backend/tests/test_handicap.py).
+
+---
+
+## Notas de seguridad
+
+- Todos los endpoints de datos exigen un token JWT y filtran **siempre** por el usuario del token:
+  ningún usuario puede leer ni modificar rondas o torneos de otro.
+- Los totales de una ronda (par, golpes, putts) se calculan en el servidor a partir de la tarjeta;
+  nunca se confía en los que envía el cliente.
+- Cambiar el correo o la contraseña exige confirmar la contraseña actual.
+- El login devuelve el mismo mensaje tanto si el correo no existe como si la contraseña es incorrecta,
+  para no revelar qué correos están registrados.
+- La clave de la API externa de campos vive en el backend, no en el bundle de JavaScript.
+- La documentación interactiva (`/docs`) se desactiva sola cuando `ENVIRONMENT=production`.
+
+---
+
+## Migrar una base de datos anterior
+
+Si ya tienes datos creados con el esquema antiguo, ejecuta la migración incluida
+(haz una copia de seguridad antes):
+
+```bash
+docker exec caddex_db mysqldump -ugolf_user -pgolf_pass golf_db > copia.sql
+```
+
+```bash
+docker exec -i caddex_db mysql -ugolf_user -pgolf_pass golf_db < docker/migraciones/001_esquema_v1_a_v2.sql
+```
+
+Y después, para añadir la dispersión de calle:
+
+```bash
+docker exec -i caddex_db mysql -ugolf_user -pgolf_pass golf_db < docker/migraciones/002_dispersion_de_calle.sql
+```

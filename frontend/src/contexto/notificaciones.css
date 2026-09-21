@@ -1,56 +1,55 @@
 .avisos-contenedor {
   position: fixed;
-  top: 20px;
-  right: 20px;
+  top: 84px;
+  right: 24px;
   z-index: 1000;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  max-width: min(360px, calc(100vw - 40px));
+  max-width: min(380px, calc(100vw - 32px));
 }
 
 .aviso {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 13px 16px;
-  border-radius: var(--radio-md);
-  background-color: #ffffff;
-  color: var(--verde-profundo);
-  box-shadow: var(--sombra-tarjeta);
-  border-left: 4px solid var(--verde-suave);
+  gap: 14px;
+  padding: 15px 18px;
+  border: 1px solid var(--linea);
+  border-left: 3px solid var(--acero);
+  border-radius: var(--r-sm);
+  background-color: var(--carbon-2);
+  color: var(--hueso);
   font-size: 14px;
-  line-height: 1.45;
-  animation: aviso-entrada 0.25s ease-out;
+  line-height: 1.5;
+  animation: aviso-entrada 0.2s ease-out;
 }
 
 .aviso-exito {
-  border-left-color: #16a34a;
+  border-left-color: var(--marca-texto);
 }
 
 .aviso-error {
-  border-left-color: #dc2626;
+  border-left-color: var(--negativo);
 }
 
 .aviso button {
   margin-left: auto;
   background: none;
   border: none;
-  color: inherit;
-  opacity: 0.5;
-  font-size: 14px;
-  line-height: 1;
   padding: 2px;
+  color: var(--acero);
+  font-size: 13px;
+  line-height: 1;
 }
 
 .aviso button:hover {
-  opacity: 1;
+  color: var(--hueso);
 }
 
 @keyframes aviso-entrada {
   from {
     opacity: 0;
-    transform: translateX(24px);
+    transform: translateX(20px);
   }
   to {
     opacity: 1;
@@ -61,5 +60,15 @@
 @media (prefers-reduced-motion: reduce) {
   .aviso {
     animation: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .avisos-contenedor {
+    top: auto;
+    bottom: 20px;
+    right: 16px;
+    left: 16px;
+    max-width: none;
   }
 }

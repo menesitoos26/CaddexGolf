@@ -36,6 +36,9 @@ export default function MisRondas() {
   }, [])
 
   useEffect(() => {
+    // Carga inicial y al cambiar de página: es sincronización con el servidor,
+    // no un cálculo derivable del estado.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     cargar(pagina)
   }, [cargar, pagina])
 

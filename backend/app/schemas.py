@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
@@ -130,12 +130,16 @@ class TorneoPublico(ModeloBase):
 # --------------------------------------------------------------------- rondas
 
 
+LadoCalle = Literal["izquierda", "centro", "derecha"]
+
+
 class HoyoEntrada(BaseModel):
     hole_number: int = Field(ge=1, le=18)
     par: int = Field(ge=3, le=6)
     strokes: int = Field(ge=1, le=20)
     putts: int | None = Field(default=None, ge=0, le=15)
     fairway_hit: bool | None = None
+    fairway_side: LadoCalle | None = None
     green_in_regulation: bool | None = None
     penalties: int = Field(default=0, ge=0, le=10)
 
@@ -145,6 +149,14 @@ class HoyoEntrada(BaseModel):
             raise ValueError(
                 f"Hoyo {self.hole_number}: los putts no pueden superar a los golpes."
             )
+
+        # "centro" y "dio calle" son la misma cosa: mantenemos los dos campos
+        # coherentes para que las estadísticas no se contradigan.
+        if self.fairway_side is not None:
+            object.__setattr__(self, "fairway_hit", self.fairway_side == "centro")
+        elif self.fairway_hit:
+            object.__setattr__(self, "fairway_side", "centro")
+
         return self
 
 
@@ -154,6 +166,7 @@ class HoyoPublico(ModeloBase):
     strokes: int
     putts: int | None = None
     fairway_hit: bool | None = None
+    fairway_side: LadoCalle | None = None
     green_in_regulation: bool | None = None
     penalties: int = 0
 
@@ -279,6 +292,15 @@ class RendimientoCampo(BaseModel):
     mejor_sobre_par: int
 
 
+class DispersionCalle(BaseModel):
+    """Hacia dónde se van las salidas cuando no van a calle."""
+
+    izquierda: int = 0
+    centro: int = 0
+    derecha: int = 0
+    total: int = 0
+
+
 class ResumenEstadisticas(BaseModel):
     total_rondas: int = 0
     total_hoyos: int = 0
@@ -297,6 +319,7 @@ class ResumenEstadisticas(BaseModel):
 class EstadisticasRespuesta(BaseModel):
     resumen: ResumenEstadisticas
     reparto: RepartoResultados
+    dispersion_calle: DispersionCalle = DispersionCalle()
     por_par: list[MediaPorPar] = []
     evolucion: list[PuntoEvolucion] = []
     por_campo: list[RendimientoCampo] = []

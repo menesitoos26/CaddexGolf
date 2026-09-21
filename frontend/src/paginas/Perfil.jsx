@@ -9,21 +9,25 @@ export default function Perfil() {
   const { usuario, actualizarUsuario, cerrarSesion } = useAuth()
   const { exito } = useNotificaciones()
 
-  const [datos, setDatos] = useState({ name: '', email: '' })
+  // La ruta está protegida, así que al montar ya tenemos usuario.
+  const [datos, setDatos] = useState({ name: usuario.name, email: usuario.email })
   const [passwords, setPasswords] = useState({ actual: '', nueva: '', repetir: '' })
   const [estadisticas, setEstadisticas] = useState(null)
   const [error, setError] = useState('')
   const [guardando, setGuardando] = useState(false)
 
   useEffect(() => {
-    if (usuario) setDatos({ name: usuario.name, email: usuario.email })
-  }, [usuario])
-
-  useEffect(() => {
-    api.estadisticas().then(setEstadisticas).catch(() => {})
+    let cancelado = false
+    api
+      .estadisticas()
+      .then((datosStats) => !cancelado && setEstadisticas(datosStats))
+      .catch(() => {})
+    return () => {
+      cancelado = true
+    }
   }, [])
 
-  const cambiaEmail = datos.email !== usuario?.email
+  const cambiaEmail = datos.email !== usuario.email
   const quiereCambiarPassword = passwords.nueva.length > 0
 
   const guardar = async (evento) => {
@@ -130,9 +134,7 @@ export default function Perfil() {
               </div>
             </div>
 
-            <h3 className="seccion-titulo" style={{ fontSize: 15, marginTop: 10 }}>
-              Cambiar contraseña
-            </h3>
+            <h3 className="seccion-titulo perfil-subtitulo">Cambiar contraseña</h3>
 
             <div className="fila-campos">
               <div className="campo">

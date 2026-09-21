@@ -1,28 +1,42 @@
-/** Estilos compartidos por todas las gráficas de Recharts. */
+/** Estilos de gráfica del sistema Caddex.
+ *
+ * Regla del sistema: línea de 2.5–3, relleno al 10 %, rejilla en --linea
+ * y sin ejes decorativos. El dato manda, el adorno no.
+ */
+
+export const COLORES = {
+  voltio: '#c4f23c',
+  voltioSuave: 'rgba(196, 242, 60, 0.10)',
+  negativo: '#e06b6b',
+  rejilla: '#2c313d',
+  ejes: '#5c636e',
+  acero: '#8a9199',
+  superficie: '#232733',
+}
 
 export const ESTILO_TOOLTIP = {
-  backgroundColor: '#1f3a24',
-  border: '1px solid rgba(255,255,255,0.15)',
+  backgroundColor: '#1b1e26',
+  border: '1px solid #2c313d',
   borderRadius: 10,
-  color: '#F4F7F2',
+  color: '#f4f6f1',
+  fontFamily: 'Sora, sans-serif',
   fontSize: 13,
 }
 
-export const COLORES = {
-  par: '#60a667',
-  golpes: '#c1e9b6',
-  acento: '#A3E635',
-  malo: '#ff8f8f',
-  rejilla: '#3b5c40',
-  ejes: '#aab8ac',
+export const ESTILO_EJE = {
+  stroke: COLORES.ejes,
+  fontSize: 11,
+  fontFamily: 'Inter, sans-serif',
+  tickLine: false,
+  axisLine: false,
 }
 
-/** Paleta del reparto de resultados, de mejor a peor. */
+/** Reparto de resultados: del voltio (mejor) al rojo (peor). */
 export const COLORES_REPARTO = [
-  '#A3E635',
-  '#7ed957',
-  '#60a667',
-  '#f5c451',
-  '#f08a5d',
-  '#ff6b6b',
+  '#c4f23c',
+  '#a8dc4e',
+  '#8ac45c',
+  '#8a9199',
+  '#c98a76',
+  '#e06b6b',
 ]

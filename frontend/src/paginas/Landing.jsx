@@ -49,20 +49,21 @@ export default function Landing() {
           <span className="publica-kicker">Tu progreso, hoyo a hoyo</span>
           <h1>Mejora tu juego ronda a ronda</h1>
           <p>
-            CaddexGolf digitaliza tu tarjeta: registra tus partidas y tus torneos, calcula tu
-            hándicap automáticamente y te enseña en qué parte de tu juego puedes ganar más golpes.
+            Caddex digitaliza tu tarjeta: registra tus partidas y tus torneos, calcula tu hándicap
+            con el método del World Handicap System y te enseña exactamente dónde estás perdiendo
+            golpes.
           </p>
           <div className="publica-hero-botones">
             {autenticado ? (
-              <Link to="/panel" className="btn-publica btn-publica-primario">
+              <Link to="/panel" className="btn btn-primario">
                 Ir a mi panel
               </Link>
             ) : (
               <>
-                <Link to="/registro" className="btn-publica btn-publica-primario">
+                <Link to="/registro" className="btn btn-primario">
                   Crear cuenta gratis
                 </Link>
-                <Link to="/login" className="btn-publica btn-publica-secundario">
+                <Link to="/login" className="btn btn-secundario">
                   Iniciar sesión
                 </Link>
               </>
@@ -72,10 +73,13 @@ export default function Landing() {
       </section>
 
       <section className="publica-seccion">
-        <h2 className="publica-titulo-seccion">Todo lo que necesitas para bajar tu hándicap</h2>
-        <p className="publica-subtitulo-seccion">
-          Una sola plataforma para anotar, analizar y entender tu evolución como golfista.
-        </p>
+        <div className="publica-seccion-cabecera">
+          <span className="publica-seccion-numero">01</span>
+          <h2 className="publica-titulo-seccion">Todo para bajar tu hándicap</h2>
+          <p className="publica-subtitulo-seccion">
+            Anotar, analizar y entender tu evolución en un solo sitio
+          </p>
+        </div>
 
         <div className="publica-grid-caracteristicas">
           {CARACTERISTICAS.map((caracteristica) => (
@@ -90,8 +94,13 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="publica-seccion publica-seccion-alterna">
-        <h2 className="publica-titulo-seccion">Cómo funciona</h2>
+      <section className="publica-seccion">
+        <div className="publica-seccion-cabecera">
+          <span className="publica-seccion-numero">02</span>
+          <h2 className="publica-titulo-seccion">Cómo funciona</h2>
+          <p className="publica-subtitulo-seccion">Tres pasos, ninguna hoja de cálculo</p>
+        </div>
+
         <div className="publica-pasos">
           {PASOS.map((paso) => (
             <div className="publica-paso" key={paso.numero}>
@@ -107,14 +116,14 @@ export default function Landing() {
         <section className="publica-cta">
           <h2>¿Listo para empezar a mejorar?</h2>
           <p>Únete gratis y registra tu primera ronda hoy mismo.</p>
-          <Link to="/registro" className="btn-publica btn-publica-primario">
+          <Link to="/registro" className="btn btn-primario">
             Crear cuenta gratis
           </Link>
         </section>
       )}
 
       <footer className="publica-footer">
-        <p>⛳ CaddexGolf — Proyecto Fin de Grado (DAW)</p>
+        <p>Caddex Golf · Proyecto Fin de Grado (DAW)</p>
       </footer>
     </div>
   )

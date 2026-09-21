@@ -1,40 +1,88 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
 
-/* =========================================
-   SISTEMA DE DISEÑO GLOBAL - GOLFTRACKER
-   ========================================= */
+/* =========================================================
+   CADDEX GOLF · FUNDAMENTOS
+   Tokens del sistema de diseño. Nada de color suelto fuera
+   de aquí: si un valor se repite, es que le falta variable.
+   ========================================================= */
 :root {
-  /* Paleta principal */
-  --verde-header: rgb(65, 105, 70);
-  --verde-oscuro: rgb(45, 80, 50);
-  --verde-profundo: rgb(35, 65, 40);
-  --verde-medio: rgb(54, 94, 58);
-  --verde-suave: rgb(96, 166, 103);
-  --verde-brillante: rgb(193, 233, 182);
-  --verde-acento: #A3E635;
-  --blanco-crema: #F4F7F2;
+  /* Superficies */
+  --fondo: #0e1014;
+  --carbon: #14161c;
+  --carbon-2: #1b1e26;
+  --carbon-3: #232733;
+  --barra: #171a21;
+  --linea: #2c313d;
 
-  /* Texto */
-  --texto-claro: var(--blanco-crema);
-  --texto-tenue: #aab8ac;
+  /* Marca y texto */
+  --voltio: #c4f23c;
+  --voltio-claro: #d8fa6e;
+  --hueso: #f4f6f1;
+  --acero: #8a9199;
+  --acero-apagado: #5c636e;
 
   /* Estados */
-  --color-error: #ff6b6b;
-  --color-exito: #6bffb8;
+  --negativo: #e06b6b;
+  --positivo: var(--bajo-par);
 
   /* Forma */
-  --radio-sm: 8px;
-  --radio-md: 14px;
-  --radio-lg: 20px;
-  --radio-pill: 999px;
-
-  /* Sombras */
-  --sombra-suave: 0 4px 16px rgba(0, 0, 0, 0.15);
-  --sombra-tarjeta: 0 10px 30px rgba(0, 0, 0, 0.25);
+  --r: 14px;
+  --r-sm: 10px;
+  --r-lg: 20px;
 
   /* Tipografía */
-  --fuente-titulos: 'Poppins', system-ui, -apple-system, sans-serif;
-  --fuente-texto: 'Inter', system-ui, -apple-system, sans-serif;
+  --titulos: 'Sora', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --texto: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* --- Tokens semanticos ---------------------------------
+     La capa que permite cambiar de tema sin tocar componentes.
+     Oscuro: relleno volt con texto carbon.
+     Claro : relleno carbon con texto volt (el volt no contrasta
+             sobre crema, solo sobre carbon).                     */
+  --acento: var(--voltio);
+  --acento-fuerte: var(--voltio-claro);
+  --acento-texto: var(--carbon);
+  --marca-texto: var(--voltio);
+  --marca-texto-fuerte: var(--voltio-claro);
+  --superficie-2: var(--carbon);
+  --bajo-par: var(--voltio);
+
+  color-scheme: dark;
+}
+
+/* =========================================================
+   TEMA CLARO · "tarjeta de papel"
+   Se activa con data-tema="claro" en <html>. Lo llevan las
+   pantallas de juego, porque son las que se usan a pleno sol:
+   un fondo oscuro no refleja luz ambiental y el contraste
+   efectivo se hunde justo al leer el numero del hoyo.
+   Rojo sobre par / verde bajo par: el codigo de toda la vida
+   de una tarjeta de golf.
+   ========================================================= */
+:root[data-tema='claro'] {
+  /* Superficies */
+  --fondo: #f4f2e9;
+  --carbon-2: #ffffff;
+  --carbon-3: #ffffff;
+  --barra: #ffffff;
+  --linea: #ddd8c7;
+  --superficie-2: #ffffff;
+
+  /* Texto */
+  --hueso: #14161c;
+  --acero: #6b6f63;
+  --acero-apagado: #8a8c80;
+
+  /* Marca invertida */
+  --acento: #14161c;
+  --acento-fuerte: #2a2f3a;
+  --acento-texto: #c4f23c;
+  --marca-texto: #2f6b3f;
+  --marca-texto-fuerte: #245231;
+
+  /* Resultados */
+  --negativo: #c1342f;
+  --bajo-par: #2f6b3f;
 
   color-scheme: light;
 }
@@ -50,38 +98,82 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  font-family: var(--fuente-texto);
-  color: var(--texto-claro);
-  background-color: var(--verde-oscuro);
+  background-color: var(--fondo);
+  color: var(--hueso);
+  font-family: var(--texto);
+  font-size: 16px;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--fuente-titulos);
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--titulos);
+  font-weight: 600;
+  letter-spacing: -0.02em;
   margin: 0;
 }
 
-button {
-  font-family: var(--fuente-texto);
-  cursor: pointer;
+/* Las cifras siempre en Sora con tabular-nums para que no salten al actualizarse. */
+.cifra {
+  font-family: var(--titulos);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  line-height: 1;
 }
 
-input, select, textarea {
-  font-family: var(--fuente-texto);
+/* Etiqueta: Inter 500 · 11/0.16em · mayúsculas */
+.etiqueta-campo {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--acero);
 }
 
 a {
-  font-family: var(--fuente-texto);
+  color: var(--marca-texto);
+  text-decoration: none;
 }
 
-/* Scrollbar discreta acorde a la paleta */
+a:hover {
+  color: var(--marca-texto-fuerte);
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--marca-texto);
+  outline-offset: 2px;
+}
+
 ::-webkit-scrollbar {
   width: 10px;
+  height: 10px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
-  background-color: var(--verde-suave);
-  border-radius: var(--radio-pill);
+  background-color: var(--carbon-3);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--linea);
 }

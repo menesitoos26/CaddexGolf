@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import Logo from '../componentes/Logo'
 import { useAuth } from '../hooks/useAuth'
 import { useNotificaciones } from '../hooks/useNotificaciones'
 import './acceso.css'
@@ -53,8 +54,12 @@ export default function Registro() {
   return (
     <div className="acceso-pagina">
       <div className="acceso-tarjeta">
+        <div className="acceso-marca">
+          <Logo tamano={30} />
+          <span>Caddex</span>
+        </div>
         <h1>Crear cuenta</h1>
-        <p className="acceso-subtitulo">Empieza a llevar el control de tu juego.</p>
+        <p className="acceso-subtitulo">Apunta. Analiza. Mejora.</p>
 
         <form className="formulario" onSubmit={enviar} noValidate>
           <div className="campo">

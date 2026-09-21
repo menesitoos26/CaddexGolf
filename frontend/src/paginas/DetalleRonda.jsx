@@ -11,6 +11,23 @@ import {
 } from '../utils/formato'
 import './detalleRonda.css'
 
+/** Acierto de calle o green: voltio si sí, apagado si no. */
+function marcaAcierto(valor) {
+  if (valor === null) return <span className="texto-tenue">—</span>
+  return valor ? (
+    <span className="detalle-acierto">✓</span>
+  ) : (
+    <span className="detalle-fallo">✗</span>
+  )
+}
+
+/** Calle: el acierto en voltio, el fallo indicando hacia qué lado se fue. */
+function marcaCalle(lado) {
+  if (!lado) return <span className="texto-tenue">—</span>
+  if (lado === 'centro') return <span className="detalle-acierto">✓</span>
+  return <span className="detalle-fallo">{lado === 'izquierda' ? '← izq' : 'der →'}</span>
+}
+
 /** Resumen de una mitad del recorrido (ida / vuelta). */
 function bloqueDeHoyos(hoyos, desde, hasta) {
   const seleccion = hoyos.filter((h) => h.hole_number >= desde && h.hole_number <= hasta)
@@ -98,7 +115,7 @@ export default function DetalleRonda() {
   const ida = bloqueDeHoyos(ronda.holes, 1, 9)
   const vuelta = bloqueDeHoyos(ronda.holes, 10, 18)
   const conPutts = ronda.holes.some((hoyo) => hoyo.putts !== null)
-  const conCalles = ronda.holes.some((hoyo) => hoyo.fairway_hit !== null)
+  const conCalles = ronda.holes.some((hoyo) => hoyo.fairway_side !== null)
   const conGreenes = ronda.holes.some((hoyo) => hoyo.green_in_regulation !== null)
 
   return (
@@ -196,18 +213,8 @@ export default function DetalleRonda() {
                         {nombreResultadoHoyo(hoyo.strokes, hoyo.par)}
                       </td>
                       {conPutts && <td className="texto-tenue">{hoyo.putts ?? '—'}</td>}
-                      {conCalles && (
-                        <td>{hoyo.fairway_hit === null ? '—' : hoyo.fairway_hit ? '✓' : '✗'}</td>
-                      )}
-                      {conGreenes && (
-                        <td>
-                          {hoyo.green_in_regulation === null
-                            ? '—'
-                            : hoyo.green_in_regulation
-                              ? '✓'
-                              : '✗'}
-                        </td>
-                      )}
+                      {conCalles && <td>{marcaCalle(hoyo.fairway_side)}</td>}
+                      {conGreenes && <td>{marcaAcierto(hoyo.green_in_regulation)}</td>}
                     </tr>
                   )
                 })}
@@ -258,7 +265,7 @@ export default function DetalleRonda() {
         {ronda.notes && (
           <section className="tarjeta seccion">
             <h2 className="seccion-titulo">Notas</h2>
-            <p style={{ margin: 0, lineHeight: 1.6 }}>{ronda.notes}</p>
+            <p className="detalle-notas">{ronda.notes}</p>
           </section>
         )}
       </div>

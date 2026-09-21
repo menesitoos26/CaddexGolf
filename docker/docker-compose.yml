@@ -1,68 +1,72 @@
-name: golf-tracker
+name: caddex-golf
 
 services:
-
   frontend:
     build:
       context: ../frontend
       dockerfile: Dockerfile
-    container_name: golf_frontend
-    networks:
-      - golf_network
+    container_name: caddex_frontend
+    networks: [caddex_network]
     restart: unless-stopped
 
   backend:
     build:
       context: ../backend
       dockerfile: Dockerfile
-    container_name: golf_backend
-    env_file:
-      - ../.env
+    container_name: caddex_backend
+    environment:
+      DATABASE_URL: mysql+pymysql://${MYSQL_USER:-golf_user}:${MYSQL_PASSWORD:-golf_pass}@db:3306/${MYSQL_DATABASE:-golf_db}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?Define JWT_SECRET_KEY en docker/.env}
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      CORS_ORIGINS: ${CORS_ORIGINS:-}
+      GOLF_COURSE_API_KEY: ${GOLF_COURSE_API_KEY:-}
     depends_on:
       db:
         condition: service_healthy
-    networks:
-      - golf_network
+    networks: [caddex_network]
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
   db:
     image: mysql:8.0
-    container_name: golf_db
+    container_name: caddex_db
     environment:
-      MYSQL_ROOT_PASSWORD: root_pass
-      MYSQL_DATABASE: golf_db
-      MYSQL_USER: golf_user
-      MYSQL_PASSWORD: golf_pass
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Define MYSQL_ROOT_PASSWORD en docker/.env}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-golf_db}
+      MYSQL_USER: ${MYSQL_USER:-golf_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Define MYSQL_PASSWORD en docker/.env}
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-    networks:
-      - golf_network
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks: [caddex_network]
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot_pass"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 30s
     restart: unless-stopped
 
   nginx:
     image: nginx:alpine
-    container_name: golf_nginx
+    container_name: caddex_nginx
     ports:
       - "80:80"
       - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro
-    depends_on:
-      - frontend
-      - backend
-    networks:
-      - golf_network
+    depends_on: [frontend, backend]
+    networks: [caddex_network]
     restart: unless-stopped
 
 networks:
-  golf_network:
+  caddex_network:
     driver: bridge
 
 volumes:

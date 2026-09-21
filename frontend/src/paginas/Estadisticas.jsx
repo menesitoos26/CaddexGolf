@@ -15,16 +15,17 @@ import { api } from '../api/cliente'
 import Cargando from '../componentes/Cargando'
 import EstadoVacio from '../componentes/EstadoVacio'
 import { claseDiferencia, formatearDiferencia, formatearNumero } from '../utils/formato'
-import { COLORES, COLORES_REPARTO, ESTILO_TOOLTIP } from '../utils/graficas'
+import { COLORES, COLORES_REPARTO, ESTILO_EJE, ESTILO_TOOLTIP } from '../utils/graficas'
 import './estadisticas.css'
 
 const ETIQUETAS_REPARTO = [
-  { clave: 'eagles', nombre: 'Eagle o mejor' },
+  // Nombres cortos: el eje del gráfico los parte si son largos.
+  { clave: 'eagles', nombre: 'Eagle+' },
   { clave: 'birdies', nombre: 'Birdie' },
   { clave: 'pares', nombre: 'Par' },
   { clave: 'bogeys', nombre: 'Bogey' },
-  { clave: 'dobles', nombre: 'Doble bogey' },
-  { clave: 'triples_o_mas', nombre: 'Triple o peor' },
+  { clave: 'dobles', nombre: 'Doble' },
+  { clave: 'triples_o_mas', nombre: 'Triple+' },
 ]
 
 export default function Estadisticas() {
@@ -60,7 +61,14 @@ export default function Estadisticas() {
     )
   }
 
-  const { resumen, reparto, por_par: porPar, evolucion, por_campo: porCampo } = datos
+  const {
+    resumen,
+    reparto,
+    por_par: porPar,
+    evolucion,
+    por_campo: porCampo,
+    dispersion_calle: dispersion,
+  } = datos
 
   if (resumen.total_rondas === 0) {
     return (
@@ -171,7 +179,7 @@ export default function Estadisticas() {
 
         <div className="rejilla-graficas">
           <section className="tarjeta">
-            <h2 className="seccion-titulo">Evolución de tus resultados</h2>
+            <h2 className="seccion-titulo">Evolución</h2>
             <p className="texto-tenue estadisticas-nota">
               Golpes sobre el par de cada ronda, normalizados a 18 hoyos. Cuanto más baja la
               línea, mejor.
@@ -182,9 +190,9 @@ export default function Estadisticas() {
                   data={datosEvolucion}
                   margin={{ top: 8, right: 12, left: -20, bottom: 0 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={COLORES.rejilla} />
-                  <XAxis dataKey="etiqueta" stroke={COLORES.ejes} tickLine={false} fontSize={12} />
-                  <YAxis stroke={COLORES.ejes} tickLine={false} fontSize={12} />
+                  <CartesianGrid vertical={false} stroke={COLORES.rejilla} />
+                  <XAxis dataKey="etiqueta" {...ESTILO_EJE} />
+                  <YAxis {...ESTILO_EJE} />
                   <Tooltip
                     contentStyle={ESTILO_TOOLTIP}
                     labelFormatter={(_, carga) => carga?.[0]?.payload?.campo ?? ''}
@@ -192,10 +200,10 @@ export default function Estadisticas() {
                   <Line
                     type="monotone"
                     dataKey="Sobre par (18h)"
-                    stroke={COLORES.acento}
+                    stroke={COLORES.voltio}
                     strokeWidth={3}
-                    dot={{ r: 3 }}
-                    activeDot={{ r: 6 }}
+                    dot={{ r: 3, fill: COLORES.voltio, strokeWidth: 0 }}
+                    activeDot={{ r: 5 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -214,23 +222,12 @@ export default function Estadisticas() {
                   layout="vertical"
                   margin={{ top: 4, right: 20, left: 34, bottom: 0 }}
                 >
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    horizontal={false}
-                    stroke={COLORES.rejilla}
-                  />
-                  <XAxis type="number" stroke={COLORES.ejes} fontSize={12} tickLine={false} />
-                  <YAxis
-                    type="category"
-                    dataKey="nombre"
-                    stroke={COLORES.ejes}
-                    fontSize={11}
-                    tickLine={false}
-                    width={92}
-                  />
+                  <CartesianGrid horizontal={false} stroke={COLORES.rejilla} />
+                  <XAxis type="number" {...ESTILO_EJE} />
+                  <YAxis type="category" dataKey="nombre" {...ESTILO_EJE} width={96} />
                   <Tooltip
                     contentStyle={ESTILO_TOOLTIP}
-                    cursor={{ fill: 'rgba(255,255,255,0.06)' }}
+                    cursor={{ fill: 'rgba(196,242,60,0.06)' }}
                     formatter={(valor, _, elemento) => [
                       `${valor} hoyos (${elemento.payload.porcentaje}%)`,
                       'Total',
@@ -254,12 +251,12 @@ export default function Estadisticas() {
             <div className="grafica-mediana">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={datosPorPar} margin={{ top: 8, right: 12, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={COLORES.rejilla} />
-                  <XAxis dataKey="nombre" stroke={COLORES.ejes} fontSize={12} tickLine={false} />
-                  <YAxis stroke={COLORES.ejes} fontSize={12} tickLine={false} />
+                  <CartesianGrid vertical={false} stroke={COLORES.rejilla} />
+                  <XAxis dataKey="nombre" {...ESTILO_EJE} />
+                  <YAxis {...ESTILO_EJE} />
                   <Tooltip
                     contentStyle={ESTILO_TOOLTIP}
-                    cursor={{ fill: 'rgba(255,255,255,0.06)' }}
+                    cursor={{ fill: 'rgba(196,242,60,0.06)' }}
                     formatter={(valor, nombre, elemento) => [
                       `${valor} (${formatearDiferencia(
                         Math.round(elemento.payload.sobrePar * 10) / 10,
@@ -267,11 +264,56 @@ export default function Estadisticas() {
                       nombre,
                     ]}
                   />
-                  <Bar dataKey="Media de golpes" fill={COLORES.par} radius={[5, 5, 0, 0]} />
+                  <Bar dataKey="Media de golpes" fill={COLORES.voltio} radius={[5, 5, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </section>
+
+          {dispersion.total > 0 && (
+            <section className="tarjeta">
+              <h2 className="seccion-titulo">Dispersión desde el tee</h2>
+              <p className="estadisticas-nota">
+                Hacia dónde se van tus salidas en los hoyos de par 4 y 5. Fallar siempre al mismo
+                lado es lo más fácil de corregir.
+              </p>
+
+              <div className="lista-debilidades">
+                {[
+                  { clave: 'izquierda', texto: 'Falla a la izquierda' },
+                  { clave: 'centro', texto: 'Dio calle' },
+                  { clave: 'derecha', texto: 'Falla a la derecha' },
+                ].map((fila) => {
+                  const veces = dispersion[fila.clave]
+                  const porcentaje = Math.round((veces / dispersion.total) * 100)
+                  const esBueno = fila.clave === 'centro'
+
+                  return (
+                    <div className="debilidad" key={fila.clave}>
+                      <div className="debilidad-fila">
+                        <span>{fila.texto}</span>
+                        <strong className={esBueno ? 'resultado-bajo-par' : 'resultado-sobre-par'}>
+                          {porcentaje}%
+                        </strong>
+                      </div>
+                      <div className="barra-progreso">
+                        <span
+                          style={{
+                            width: `${porcentaje}%`,
+                            backgroundColor: esBueno ? COLORES.voltio : COLORES.negativo,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              <p className="estadisticas-pie">
+                {dispersion.total} salidas registradas.
+              </p>
+            </section>
+          )}
 
           <section className="tarjeta">
             <h2 className="seccion-titulo">Tus campos</h2>

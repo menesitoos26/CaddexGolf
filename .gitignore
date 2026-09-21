@@ -25,3 +25,16 @@ dist-ssr
 .env
 .env.*
 !.env.example
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Base de datos local (SQLite de desarrollo)
+*.db
+
+# Copia de seguridad temporal del cambio de tema (borrar cuando se confirme)
+frontend/src/_backup_tema/

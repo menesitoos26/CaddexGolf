@@ -1,13 +1,13 @@
-import { useEffect, useState } from 'react'
-import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { obtenerIniciales } from '../utils/formato'
+import Logo from './Logo'
 import './encabezado.css'
 
-const ENLACES_PRIVADOS = [
-  { a: '/panel', texto: 'Panel' },
-  { a: '/rondas/nueva', texto: 'Nueva ronda' },
-  { a: '/rondas', texto: 'Mis rondas' },
+const ENLACES = [
+  { a: '/panel', texto: 'Dashboard' },
+  { a: '/rondas', texto: 'Rondas' },
   { a: '/torneos', texto: 'Torneos' },
   { a: '/estadisticas', texto: 'Estadísticas' },
 ]
@@ -16,12 +16,11 @@ export default function Encabezado() {
   const { usuario, autenticado, cerrarSesion } = useAuth()
   const [menuAbierto, setMenuAbierto] = useState(false)
   const navegar = useNavigate()
-  const ubicacion = useLocation()
 
-  // Al cambiar de página cerramos el menú móvil.
-  useEffect(() => setMenuAbierto(false), [ubicacion.pathname])
+  const cerrarMenu = () => setMenuAbierto(false)
 
   const salir = () => {
+    cerrarMenu()
     cerrarSesion()
     navegar('/', { replace: true })
   }
@@ -29,9 +28,9 @@ export default function Encabezado() {
   return (
     <header className="encabezado">
       <div className="encabezado-interior">
-        <Link to={autenticado ? '/panel' : '/'} className="encabezado-marca">
-          <img src="/logo.png" alt="" width="38" height="38" />
-          <span>CaddexGolf</span>
+        <Link to={autenticado ? '/panel' : '/'} className="encabezado-marca" onClick={cerrarMenu}>
+          <Logo tamano={22} />
+          <span>Caddex</span>
         </Link>
 
         <button
@@ -51,11 +50,12 @@ export default function Encabezado() {
         >
           {autenticado && (
             <ul className="encabezado-enlaces">
-              {ENLACES_PRIVADOS.map((enlace) => (
+              {ENLACES.map((enlace) => (
                 <li key={enlace.a}>
                   <NavLink
                     to={enlace.a}
                     end={enlace.a === '/rondas'}
+                    onClick={cerrarMenu}
                     className={({ isActive }) => (isActive ? 'activo' : '')}
                   >
                     {enlace.texto}
@@ -65,33 +65,36 @@ export default function Encabezado() {
             </ul>
           )}
 
-          {autenticado ? (
-            <div className="encabezado-usuario">
-              <Link to="/perfil" className="encabezado-perfil">
-                <span className="encabezado-avatar" aria-hidden="true">
-                  {obtenerIniciales(usuario?.name)}
-                </span>
-                <span className="encabezado-datos">
-                  <span className="encabezado-nombre">{usuario?.name}</span>
-                  <span className="encabezado-handicap">
-                    Hcp {usuario?.handicap ?? '—'}
+          <div className="encabezado-acciones">
+            {autenticado ? (
+              <>
+                <Link to="/rondas/nueva" className="btn btn-primario btn-pequeno" onClick={cerrarMenu}>
+                  Nueva ronda
+                </Link>
+                <Link to="/perfil" className="encabezado-perfil" onClick={cerrarMenu}>
+                  <span className="encabezado-datos">
+                    <span className="encabezado-nombre">{usuario?.name}</span>
+                    <span className="encabezado-handicap">Hcp {usuario?.handicap ?? '—'}</span>
                   </span>
-                </span>
-              </Link>
-              <button type="button" className="encabezado-salir" onClick={salir}>
-                Salir
-              </button>
-            </div>
-          ) : (
-            <div className="encabezado-acceso">
-              <Link to="/registro" className="btn btn-secundario btn-pequeno">
-                Registrarse
-              </Link>
-              <Link to="/login" className="btn btn-primario btn-pequeno">
-                Iniciar sesión
-              </Link>
-            </div>
-          )}
+                  <span className="encabezado-avatar" aria-hidden="true">
+                    {obtenerIniciales(usuario?.name)}
+                  </span>
+                </Link>
+                <button type="button" className="encabezado-salir" onClick={salir}>
+                  Salir
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" className="btn btn-secundario btn-pequeno" onClick={cerrarMenu}>
+                  Entrar
+                </Link>
+                <Link to="/registro" className="btn btn-primario btn-pequeno" onClick={cerrarMenu}>
+                  Crear cuenta
+                </Link>
+              </>
+            )}
+          </div>
         </nav>
       </div>
     </header>

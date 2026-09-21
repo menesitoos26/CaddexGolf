@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import Logo from '../componentes/Logo'
 import { useAuth } from '../hooks/useAuth'
 import { useNotificaciones } from '../hooks/useNotificaciones'
 import './acceso.css'
@@ -34,7 +35,11 @@ export default function Login() {
   return (
     <div className="acceso-pagina">
       <div className="acceso-tarjeta">
-        <h1>Iniciar sesión</h1>
+        <div className="acceso-marca">
+          <Logo tamano={30} />
+          <span>Caddex</span>
+        </div>
+        <h1>Bienvenido de nuevo</h1>
         <p className="acceso-subtitulo">Accede para registrar y analizar tus rondas.</p>
 
         <form className="formulario" onSubmit={enviar} noValidate>
@@ -71,6 +76,7 @@ export default function Login() {
           <button type="submit" className="btn btn-primario" disabled={enviando}>
             {enviando ? 'Entrando…' : 'Entrar'}
           </button>
+
         </form>
 
         <p className="acceso-pie">

@@ -15,6 +15,7 @@ from app.handicap import RondaParaHandicap, calcular_handicap
 from app.models import Course, Round, Tournament, User
 from app.schemas import (
     CampoBase,
+    DispersionCalle,
     EstadisticasRespuesta,
     MediaPorPar,
     PuntoEvolucion,
@@ -126,6 +127,7 @@ def calcular_estadisticas(db: Session, usuario: User) -> EstadisticasRespuesta:
         total_torneos=total_torneos,
     )
     reparto = RepartoResultados()
+    dispersion = DispersionCalle()
 
     if not rondas:
         return EstadisticasRespuesta(resumen=resumen, reparto=reparto)
@@ -178,6 +180,11 @@ def calcular_estadisticas(db: Session, usuario: User) -> EstadisticasRespuesta:
                 calles_intentadas += 1
                 calles_acertadas += int(hoyo.fairway_hit)
 
+                if hoyo.fairway_side is not None:
+                    lado = hoyo.fairway_side
+                    setattr(dispersion, lado, getattr(dispersion, lado) + 1)
+                    dispersion.total += 1
+
             if hoyo.green_in_regulation is not None:
                 greenes_intentados += 1
                 greenes_acertados += int(hoyo.green_in_regulation)
@@ -221,6 +228,7 @@ def calcular_estadisticas(db: Session, usuario: User) -> EstadisticasRespuesta:
     return EstadisticasRespuesta(
         resumen=resumen,
         reparto=reparto,
+        dispersion_calle=dispersion,
         por_par=lista_por_par,
         evolucion=evolucion[-MAXIMO_RONDAS_EVOLUCION:],
         por_campo=lista_por_campo,

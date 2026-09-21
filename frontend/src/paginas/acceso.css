@@ -2,48 +2,56 @@
   min-height: calc(100vh - 68px);
   display: grid;
   place-items: center;
-  padding: 48px 20px;
-  background:
-    linear-gradient(rgba(35, 65, 40, 0.82), rgba(45, 80, 50, 0.9)),
-    url('/imagen1.jpg') center / cover no-repeat fixed;
+  padding: 56px 24px 96px;
+  background-color: var(--fondo);
 }
 
 .acceso-tarjeta {
-  width: min(430px, 100%);
-  background-color: rgba(35, 65, 40, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: var(--radio-lg);
-  box-shadow: var(--sombra-tarjeta);
-  padding: 36px 32px;
+  width: min(420px, 100%);
+  background-color: var(--carbon-2);
+  border: 1px solid var(--linea);
+  border-radius: var(--r-lg);
+  padding: 40px 34px;
+}
+
+.acceso-marca {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.acceso-marca span {
+  font-family: var(--titulos);
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: -0.02em;
 }
 
 .acceso-tarjeta h1 {
-  font-size: 26px;
-  font-weight: 800;
-  color: var(--texto-claro);
-  text-align: center;
+  font-size: 34px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
 }
 
 .acceso-subtitulo {
-  text-align: center;
-  color: var(--texto-tenue);
-  font-size: 14px;
-  margin: 8px 0 26px;
+  margin: 12px 0 30px;
+  color: var(--acero);
+  font-size: 15px;
+  line-height: 1.6;
 }
 
-.acceso-tarjeta .btn {
+.acceso-tarjeta .btn-primario {
   width: 100%;
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 .acceso-pie {
+  margin: 26px 0 0;
+  padding-top: 22px;
+  border-top: 1px solid var(--linea);
   text-align: center;
-  margin: 22px 0 0;
   font-size: 14px;
-  color: var(--texto-tenue);
-}
-
-.acceso-pie a {
-  color: var(--verde-brillante);
-  font-weight: 600;
+  color: var(--acero);
 }
