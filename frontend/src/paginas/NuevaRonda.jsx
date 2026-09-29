@@ -1,9 +1,16 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { api } from '../api/cliente'
 import CapturaHoyo from '../componentes/CapturaHoyo'
 import { useAuth } from '../hooks/useAuth'
 import { useNotificaciones } from '../hooks/useNotificaciones'
+import {
+  borrarBorrador,
+  guardarBorrador,
+  hoyosAnotados,
+  leerBorrador,
+  mereceLaPenaGuardar,
+} from '../utils/borradorRonda'
 import { claseDiferencia, formatearDiferencia, hoyIso } from '../utils/formato'
 import './nuevaRonda.css'
 
@@ -34,22 +41,35 @@ export default function NuevaRonda() {
   const { exito, error: avisarError } = useNotificaciones()
   const { actualizarUsuario } = useAuth()
 
-  const [hoyos, setHoyos] = useState(() => tarjetaInicial(18))
+  // El borrador se lee una sola vez, al montar: es el estado inicial de la
+  // pantalla, no una fuente que haya que vigilar después.
+  const [borrador] = useState(leerBorrador)
+  const [recuperado, setRecuperado] = useState(() => borrador !== null)
+
+  const [hoyos, setHoyos] = useState(() => borrador?.hoyos ?? tarjetaInicial(18))
   const [modo, setModo] = useState(modoInicial)
-  const [indiceHoyo, setIndiceHoyo] = useState(0)
-  const [campo, setCampo] = useState({ name: '', city: '', country: '' })
+  const [indiceHoyo, setIndiceHoyo] = useState(() => borrador?.indiceHoyo ?? 0)
+  const [campo, setCampo] = useState(
+    () => borrador?.campo ?? { name: '', city: '', country: '' },
+  )
   const [sugerencias, setSugerencias] = useState([])
   const [torneos, setTorneos] = useState([])
   const [detalleAbierto, setDetalleAbierto] = useState(false)
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState('')
 
-  const [datos, setDatos] = useState({
-    played_on: hoyIso(),
-    tournament_id: parametros.get('torneo') || '',
-    weather: '',
-    notes: '',
-  })
+  const [datos, setDatos] = useState(() => ({
+    played_on: borrador?.datos?.played_on ?? hoyIso(),
+    // El torneo de la URL manda sobre el del borrador: si el jugador entra
+    // desde la ficha de un torneo, es ahí donde quiere anotar.
+    tournament_id: parametros.get('torneo') || borrador?.datos?.tournament_id || '',
+    weather: borrador?.datos?.weather ?? '',
+    notes: borrador?.datos?.notes ?? '',
+  }))
+
+  // Una vez guardada la ronda en el servidor dejamos de autoguardar: si no, el
+  // efecto podría reescribir el borrador que acabamos de borrar.
+  const guardadaConExito = useRef(false)
 
   useEffect(() => {
     api
@@ -78,6 +98,43 @@ export default function NuevaRonda() {
 
     return () => clearTimeout(temporizador)
   }, [campo.name])
+
+  /**
+   * Autoguardado. Replicamos la tarjeta en el dispositivo después de cada
+   * cambio, con una espera corta para no escribir en cada pulsación de +/−.
+   * Esto es lo que salva la ronda si el navegador descarta la pestaña, el
+   * jugador se va a otra app o el móvil se apaga a mitad del recorrido.
+   */
+  useEffect(() => {
+    if (guardadaConExito.current) return undefined
+
+    const temporizador = setTimeout(() => {
+      if (mereceLaPenaGuardar({ hoyos, campo })) {
+        guardarBorrador({ hoyos, campo, datos, indiceHoyo })
+      } else {
+        // La tarjeta ha vuelto a quedarse en blanco: no dejamos restos que
+        // luego aparezcan como "ronda recuperada" sin contenido.
+        borrarBorrador()
+      }
+    }, 400)
+
+    return () => clearTimeout(temporizador)
+  }, [hoyos, campo, datos, indiceHoyo])
+
+  const descartarBorrador = () => {
+    borrarBorrador()
+    setHoyos(tarjetaInicial(18))
+    setCampo({ name: '', city: '', country: '' })
+    setDatos({
+      played_on: hoyIso(),
+      tournament_id: parametros.get('torneo') || '',
+      weather: '',
+      notes: '',
+    })
+    setIndiceHoyo(0)
+    setError('')
+    setRecuperado(false)
+  }
 
   const cambiarNumeroDeHoyos = (cantidad) => {
     setHoyos((anteriores) => {
@@ -165,6 +222,10 @@ export default function NuevaRonda() {
         })),
       })
 
+      // La ronda ya está a salvo en el servidor: el borrador local sobra.
+      guardadaConExito.current = true
+      borrarBorrador()
+
       actualizarUsuario({ handicap: respuesta.handicap })
       exito('¡Ronda guardada! Tu hándicap se ha actualizado.')
       navegar(`/rondas/${respuesta.ronda.id}`)
@@ -185,6 +246,22 @@ export default function NuevaRonda() {
             <p>Anota tu tarjeta hoyo a hoyo. Los totales se calculan solos.</p>
           </div>
         </div>
+
+        {recuperado && (
+          <div className="aviso-borrador" role="status">
+            <div>
+              <strong>Hemos recuperado tu ronda sin terminar</strong>
+              <span>
+                {hoyosAnotados(hoyos)} de {hoyos.length} hoyos anotados
+                {borrador?.campo?.name ? ` en ${borrador.campo.name}` : ''}. Puedes seguir
+                donde lo dejaste.
+              </span>
+            </div>
+            <button type="button" className="btn-texto" onClick={descartarBorrador}>
+              Empezar de cero
+            </button>
+          </div>
+        )}
 
         <form onSubmit={guardar}>
           <section className="tarjeta seccion">
@@ -486,6 +563,10 @@ export default function NuevaRonda() {
           )}
 
           <div className="acciones-formulario">
+            <p className="nota-autoguardado">
+              La tarjeta se guarda sola en este dispositivo mientras anotas, aunque te quedes
+              sin cobertura.
+            </p>
             <button
               type="button"
               className="btn btn-secundario"
