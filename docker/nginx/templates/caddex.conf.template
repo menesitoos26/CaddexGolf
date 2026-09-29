@@ -22,6 +22,10 @@ server_tokens off;
 # 10 peticiones por minuto y por IP, con ráfaga de 5 sin retardo. Un jugador
 # que se equivoca de contraseña dos o tres veces no lo nota; un script que
 # prueba miles de contraseñas se topa con un 429 al sexto intento.
+#
+# El mismo límite cubre /auth/recuperar, donde no protege sólo de la fuerza
+# bruta: sin él, cualquiera podría usar el formulario de "he olvidado mi
+# contraseña" para bombardear de correos a una dirección ajena.
 limit_req_zone $binary_remote_addr zone=autenticacion:10m rate=10r/m;
 limit_req_status 429;
 
@@ -96,7 +100,7 @@ server {
     # deja de resolver el nombre al arrancar y exige una directiva `resolver`.
     # Sin ella, cada petición acaba en 502. Con rewrite, la resolución de
     # `backend` se comporta igual que en el resto del fichero.
-    location ~ ^/api/auth/(login|registro)$ {
+    location ~ ^/api/auth/(login|registro|recuperar|restablecer)$ {
         limit_req zone=autenticacion burst=5 nodelay;
 
         rewrite ^/api/(.*)$ /$1 break;

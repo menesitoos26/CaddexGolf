@@ -65,6 +65,33 @@ class TokenRespuesta(BaseModel):
     user: UsuarioPublico
 
 
+class PerfilActualizado(UsuarioPublico):
+    """Perfil tras editarlo.
+
+    Cambiar la contraseña invalida todas las sesiones anteriores. Para que eso
+    no eche también al dispositivo desde el que se acaba de hacer el cambio,
+    aquí viaja un token nuevo. Es null cuando no se tocó la contraseña.
+    """
+
+    access_token: str | None = None
+
+
+# ------------------------------------------ restablecimiento de contraseña
+
+
+class SolicitarRestablecimiento(BaseModel):
+    email: EmailStr
+
+
+class ConfirmarRestablecimiento(BaseModel):
+    token: str = Field(min_length=16, max_length=256)
+    password: Password
+
+
+class MensajeRespuesta(BaseModel):
+    mensaje: str
+
+
 # -------------------------------------------------------------------- campos
 
 

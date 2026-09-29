@@ -28,12 +28,20 @@ def get_current_user(
     if credenciales is None or not credenciales.credentials:
         raise CREDENCIALES_INVALIDAS
 
-    user_id = decodificar_access_token(credenciales.credentials)
-    if user_id is None:
+    descifrado = decodificar_access_token(credenciales.credentials)
+    if descifrado is None:
         raise CREDENCIALES_INVALIDAS
+
+    user_id, version = descifrado
 
     usuario = db.get(User, user_id)
     if usuario is None:
+        raise CREDENCIALES_INVALIDAS
+
+    # Un token de una generación anterior ya no vale. Es lo que hace que
+    # restablecer la contraseña expulse de verdad a quien se hubiera colado en
+    # la cuenta, en vez de dejarle el token vivo hasta siete días.
+    if version != usuario.token_version:
         raise CREDENCIALES_INVALIDAS
 
     return usuario

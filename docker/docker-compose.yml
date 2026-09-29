@@ -20,6 +20,16 @@ services:
       ENVIRONMENT: ${ENVIRONMENT:-production}
       CORS_ORIGINS: ${CORS_ORIGINS:-}
       GOLF_COURSE_API_KEY: ${GOLF_COURSE_API_KEY:-}
+      # Dirección pública, para construir el enlace del correo de
+      # restablecimiento. Se deriva del dominio para no repetirlo.
+      APP_BASE_URL: ${APP_BASE_URL:-https://${DOMINIO}}
+      # SMTP. Sin SMTP_HOST el enlace se escribe en el log en vez de enviarse.
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_STARTTLS: ${SMTP_STARTTLS:-true}
+      SMTP_REMITENTE: ${SMTP_REMITENTE:-Caddex Golf <no-responder@caddexgolf.com>}
     depends_on:
       db:
         condition: service_healthy

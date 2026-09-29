@@ -166,7 +166,13 @@ La implementación está en [handicap.py](backend/app/handicap.py) y sus tests e
   nunca se confía en los que envía el cliente.
 - Cambiar el correo o la contraseña exige confirmar la contraseña actual.
 - El login devuelve el mismo mensaje tanto si el correo no existe como si la contraseña es incorrecta,
-  para no revelar qué correos están registrados.
+  para no revelar qué correos están registrados. El formulario de recuperación hace lo mismo:
+  responde igual exista o no la cuenta.
+- Los tokens de restablecimiento se guardan **hasheados** (SHA-256), caducan en una hora y sólo
+  sirven una vez. Pedir uno nuevo anula el anterior.
+- Cambiar la contraseña sube la `token_version` del usuario, lo que invalida de golpe todas las
+  sesiones abiertas. Sin esto, restablecer la contraseña porque alguien te ha entrado en la cuenta
+  no serviría de nada: su token seguiría valiendo hasta una semana.
 - La clave de la API externa de campos vive en el backend, no en el bundle de JavaScript.
 - La documentación interactiva (`/docs`) se desactiva sola cuando `ENVIRONMENT=production`.
 - Nginx limita `/api/auth/login` y `/api/auth/registro` a 10 peticiones por minuto y por IP
@@ -202,6 +208,34 @@ sudo certbot renew --dry-run
 ```
 
 Si ese ensayo falla, la renovación real también fallará. No dejarlo pasar.
+
+### Correo (restablecimiento de contraseña)
+
+Sin `SMTP_HOST` configurado la aplicación **no envía correos**: escribe el enlace en el log del
+backend. Sirve para desarrollar, pero en producción significa que quien olvide su contraseña no
+podrá recuperarla.
+
+Con Gmail hace falta una **contraseña de aplicación** (Cuenta de Google → Seguridad → Verificación
+en 2 pasos → Contraseñas de aplicaciones). La contraseña normal de la cuenta no funciona.
+
+```bash
+# en docker/.env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=tucuenta@gmail.com
+SMTP_PASSWORD=la-contrasena-de-aplicacion-de-16-letras
+SMTP_STARTTLS=true
+SMTP_REMITENTE=Caddex Golf <tucuenta@gmail.com>
+```
+
+Comprobar que sale de verdad, sin depender de que alguien lo pida desde la web:
+
+```bash
+docker compose logs backend --tail 50 | grep -i "Correo enviado\|No se pudo enviar\|SMTP no configurado"
+```
+
+`APP_BASE_URL` sale por defecto de `DOMINIO`, así que el enlace del correo apunta solo al sitio
+correcto. Sólo hay que definirla si el correo tiene que enlazar a otra dirección.
 
 ### Copias de seguridad
 
