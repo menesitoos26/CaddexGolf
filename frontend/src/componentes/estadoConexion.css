@@ -1,0 +1,38 @@
+/* Banda de estado de conexión.
+   Informativa, no alarmante: estar sin cobertura en un campo es lo normal,
+   no un error del jugador. */
+
+.banda-conexion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 10px 18px;
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: center;
+  border-bottom: 1px solid var(--linea);
+}
+
+.banda-conexion--sin-red {
+  background-color: var(--carbon-3);
+  color: var(--acero);
+}
+
+.banda-conexion--pendiente {
+  background-color: var(--carbon-2);
+  color: var(--hueso);
+  border-bottom-color: var(--acento);
+}
+
+.banda-conexion .btn-texto {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 560px) {
+  .banda-conexion {
+    padding: 10px 16px;
+    font-size: 12px;
+  }
+}

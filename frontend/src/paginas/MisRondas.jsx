@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { api } from '../api/cliente'
+import { api, mensajeDeCarga } from '../api/cliente'
 import Cargando from '../componentes/Cargando'
 import EstadoVacio from '../componentes/EstadoVacio'
 import { useNotificaciones } from '../hooks/useNotificaciones'
@@ -29,7 +29,7 @@ export default function MisRondas() {
       setRondas(datos.items)
       setTotal(datos.total)
     } catch (fallo) {
-      setError(fallo.message)
+      setError(mensajeDeCarga(fallo))
     } finally {
       setCargando(false)
     }

@@ -8,6 +8,7 @@
 
 const BASE_URL = import.meta.env.VITE_API_URL || '/api'
 const CLAVE_TOKEN = 'golftracker_token'
+const CLAVE_PERFIL = 'caddex_perfil'
 
 /** Error de API con el código HTTP, para poder distinguir 401 / 404 / 422. */
 export class ErrorApi extends Error {
@@ -23,6 +24,60 @@ export const almacenToken = {
   guardar: (token) => localStorage.setItem(CLAVE_TOKEN, token),
   borrar: () => localStorage.removeItem(CLAVE_TOKEN),
 }
+
+/**
+ * Copia local del perfil.
+ *
+ * Sin esto, abrir la aplicación sin cobertura deja al jugador fuera: no se
+ * puede preguntar al servidor quién es y no hay nada que mostrar. En un campo
+ * de golf eso pasa constantemente, así que guardamos el último perfil conocido
+ * y lo usamos mientras no haya red.
+ */
+export const almacenPerfil = {
+  leer: () => {
+    try {
+      const guardado = localStorage.getItem(CLAVE_PERFIL)
+      return guardado ? JSON.parse(guardado) : null
+    } catch {
+      return null
+    }
+  },
+  guardar: (perfil) => {
+    try {
+      localStorage.setItem(CLAVE_PERFIL, JSON.stringify(perfil))
+    } catch {
+      // Sin almacenamiento seguimos funcionando: sólo se pierde el modo offline.
+    }
+  },
+  borrar: () => {
+    try {
+      localStorage.removeItem(CLAVE_PERFIL)
+    } catch {
+      // Nada que hacer.
+    }
+  },
+}
+
+/**
+ * Distingue "no hay red" de "el servidor dice que no".
+ *
+ * Es la diferencia entre esperar a que vuelva la cobertura y cerrarle la
+ * sesión al jugador en mitad del hoyo 7.
+ */
+export const esErrorDeRed = (error) => error instanceof ErrorApi && error.estado === 0
+
+/**
+ * Mensaje de error para las pantallas que sólo cargan datos.
+ *
+ * Estando sin cobertura, la banda de conexión ya lo está diciendo con calma y
+ * explicando que no se pierde nada. Repetirlo justo debajo en rojo contradice
+ * ese mensaje y parece que algo ha fallado de verdad, así que ahí se calla.
+ *
+ * En cambio, cuando el jugador ha pulsado un botón (entrar, guardar el perfil)
+ * sí necesita ver por qué no ha pasado nada: esas pantallas usan el mensaje
+ * completo.
+ */
+export const mensajeDeCarga = (fallo) => (esErrorDeRed(fallo) ? '' : fallo.message)
 
 /** Convierte los errores de validación de FastAPI en un texto legible. */
 function extraerMensaje(cuerpo, estado) {

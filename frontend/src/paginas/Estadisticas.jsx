@@ -11,7 +11,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { api } from '../api/cliente'
+import { api, mensajeDeCarga } from '../api/cliente'
 import Cargando from '../componentes/Cargando'
 import EstadoVacio from '../componentes/EstadoVacio'
 import { claseDiferencia, formatearDiferencia, formatearNumero } from '../utils/formato'
@@ -39,7 +39,7 @@ export default function Estadisticas() {
     api
       .estadisticas()
       .then((respuesta) => !cancelado && setDatos(respuesta))
-      .catch((fallo) => !cancelado && setError(fallo.message))
+      .catch((fallo) => !cancelado && setError(mensajeDeCarga(fallo)))
       .finally(() => !cancelado && setCargando(false))
 
     return () => {
