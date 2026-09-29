@@ -76,6 +76,9 @@ jobs:
             echo "JWT_SECRET_KEY=clave-solo-para-construir-imagenes-en-ci"
             echo "MYSQL_ROOT_PASSWORD=root_ci"
             echo "MYSQL_PASSWORD=golf_ci"
+            # docker compose valida la interpolación al leer el fichero, así que
+            # DOMINIO tiene que existir aunque aquí sólo se construyan imágenes.
+            echo "DOMINIO=ci.example.org"
           } > .env
 
       - name: Construir

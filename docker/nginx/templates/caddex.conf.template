@@ -1,0 +1,132 @@
+# Configuración de Nginx para Caddex Golf.
+#
+# El dominio NO está escrito a mano: llega como ${DOMINIO} desde docker/.env y
+# el contenedor lo sustituye al arrancar. Esto no es un adorno — es la causa
+# raíz de la caída de septiembre de 2026: el fichero tenía el dominio antiguo
+# incrustado, se cambió el dominio servido y Nginx siguió presentando el
+# certificado del dominio viejo, ya caducado. Con una sola fuente de verdad,
+# cambiar de dominio es editar una línea del .env y reiniciar.
+#
+# Este fichero se monta en /etc/nginx/templates/ y la imagen oficial de Nginx
+# lo procesa con envsubst hacia /etc/nginx/conf.d/. Por eso las directivas de
+# nivel http (server_tokens, limit_req_zone) viven aquí arriba: conf.d se
+# incluye dentro del bloque http.
+
+server_tokens off;
+
+# --------------------------------------------------------------- rate limiting
+#
+# Ni la aplicación ni Nginx limitaban los intentos de login: se podía probar
+# contraseñas de forma ilimitada y gratis, y registrar cuentas en masa.
+#
+# 10 peticiones por minuto y por IP, con ráfaga de 5 sin retardo. Un jugador
+# que se equivoca de contraseña dos o tres veces no lo nota; un script que
+# prueba miles de contraseñas se topa con un 429 al sexto intento.
+limit_req_zone $binary_remote_addr zone=autenticacion:10m rate=10r/m;
+limit_req_status 429;
+
+# Zona general, mucho más holgada: protege del escaneo automático sin estorbar
+# a alguien anotando una ronda hoyo a hoyo.
+limit_req_zone $binary_remote_addr zone=api_general:10m rate=120r/m;
+
+# ------------------------------------------------------------------- HTTP → HTTPS
+
+server {
+    listen 80;
+    server_name ${DOMINIO};
+
+    # Certbot en modo webroot deja aquí su fichero de validación. Tiene que
+    # responder por HTTP plano y SIN redirigir, o la renovación falla.
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+# ----------------------------------------------------------------------- HTTPS
+
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name ${DOMINIO};
+
+    ssl_certificate     /etc/letsencrypt/live/${DOMINIO}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${DOMINIO}/privkey.pem;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache   shared:SSL:10m;
+    ssl_session_timeout 1d;
+    ssl_session_tickets off;
+
+    # ------------------------------------------------ cabeceras de seguridad
+
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "geolocation=(self), camera=(), microphone=(), payment=()" always;
+
+    # CSP en modo SOLO INFORME a propósito. Una CSP mal ajustada deja la página
+    # en blanco, y no es algo que se quiera descubrir el día de un torneo.
+    #
+    # Qué permite y por qué:
+    #   style-src  fonts.googleapis.com  -> src/index.css importa las fuentes
+    #   font-src   fonts.gstatic.com     -> los ficheros de fuente en sí
+    #   'unsafe-inline' en estilos       -> estilos inline de React y del bundle
+    #   script-src 'self'                -> el build de Vite no genera scripts inline
+    #
+    # CÓMO ACTIVARLA: usa la aplicación unos días con la consola del navegador
+    # abierta. Si no aparece ninguna violación, cambia el nombre de la cabecera
+    # por Content-Security-Policy (sin el -Report-Only) y recarga Nginx.
+    add_header Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; frame-ancestors 'self'" always;
+
+    client_max_body_size 2m;
+
+    # ------------------------------------------------------------------- API
+    #
+    # La barra final de proxy_pass quita el prefijo /api/.
+
+    # Login y registro: el límite estricto.
+    #
+    # Se quita el prefijo /api con `rewrite ... break` y no con una variable en
+    # proxy_pass a propósito: en cuanto proxy_pass contiene una variable, Nginx
+    # deja de resolver el nombre al arrancar y exige una directiva `resolver`.
+    # Sin ella, cada petición acaba en 502. Con rewrite, la resolución de
+    # `backend` se comporta igual que en el resto del fichero.
+    location ~ ^/api/auth/(login|registro)$ {
+        limit_req zone=autenticacion burst=5 nodelay;
+
+        rewrite ^/api/(.*)$ /$1 break;
+
+        proxy_pass http://backend:8000;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /api/ {
+        limit_req zone=api_general burst=40 nodelay;
+
+        proxy_pass http://backend:8000/;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # ------------------------------------------------------------------- web
+    #
+    # El contenedor del frontend ya resuelve el fallback de la SPA.
+
+    location / {
+        proxy_pass http://frontend:80;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}

@@ -58,9 +58,22 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    environment:
+      # Única fuente de verdad del dominio: la plantilla de Nginx lo lee de
+      # aquí. Cambiar de dominio es cambiar esta línea en docker/.env.
+      DOMINIO: ${DOMINIO:?Define DOMINIO en docker/.env}
+      # Limita envsubst a nuestra variable. Sin este filtro sustituiría
+      # cualquier nombre que coincida con una variable de entorno y podría
+      # vaciar directivas propias de Nginx como $$host o $$remote_addr.
+      NGINX_ENVSUBST_FILTER: "^DOMINIO$$"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      # Las plantillas se procesan con envsubst hacia /etc/nginx/conf.d/
+      # al arrancar el contenedor.
+      - ./nginx/templates:/etc/nginx/templates:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro
+      # Raíz del reto ACME. Certbot corre en el host en modo webroot y escribe
+      # aquí; Nginx solo necesita leerlo para servirlo.
+      - /var/www/certbot:/var/www/certbot:ro
     depends_on: [frontend, backend]
     networks: [caddex_network]
     restart: unless-stopped
