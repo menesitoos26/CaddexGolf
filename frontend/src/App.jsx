@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import BarraInferior from './componentes/BarraInferior'
 import Encabezado from './componentes/Encabezado'
+import EstadoConexion from './componentes/EstadoConexion'
 import { RutaProtegida, RutaSoloInvitados } from './componentes/RutaProtegida'
 import DetalleRonda from './paginas/DetalleRonda'
 import DetalleTorneo from './paginas/DetalleTorneo'
@@ -32,6 +33,7 @@ function Layout() {
   return (
     <>
       <Encabezado />
+      <EstadoConexion />
       <main>
         <Outlet />
       </main>

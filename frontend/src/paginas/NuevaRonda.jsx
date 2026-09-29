@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { api } from '../api/cliente'
+import { api, esErrorDeRed } from '../api/cliente'
 import CapturaHoyo from '../componentes/CapturaHoyo'
 import { useAuth } from '../hooks/useAuth'
 import { useNotificaciones } from '../hooks/useNotificaciones'
@@ -12,6 +12,7 @@ import {
   mereceLaPenaGuardar,
 } from '../utils/borradorRonda'
 import { claseDiferencia, formatearDiferencia, hoyIso } from '../utils/formato'
+import { encolarRonda } from '../utils/rondasPendientes'
 import './nuevaRonda.css'
 
 // Recorrido tipo par 72: los 9 primeros suman 36 y los 9 siguientes también.
@@ -200,27 +201,31 @@ export default function NuevaRonda() {
       return
     }
 
+    // Se construye una sola vez: si no hay red, es exactamente esto lo que se
+    // guarda en la cola para reenviarlo después.
+    const tarjeta = {
+      course: {
+        name: campo.name.trim(),
+        city: campo.city.trim() || null,
+        country: campo.country.trim() || null,
+      },
+      played_on: datos.played_on,
+      tournament_id: datos.tournament_id ? Number(datos.tournament_id) : null,
+      weather: datos.weather || null,
+      notes: datos.notes.trim() || null,
+      holes: hoyos.map((hoyo) => ({
+        hole_number: hoyo.hole_number,
+        par: Number(hoyo.par),
+          strokes: Number(hoyo.strokes),
+        putts: hoyo.putts === '' ? null : Number(hoyo.putts),
+        fairway_side: hoyo.fairway_side,
+        green_in_regulation: hoyo.green_in_regulation,
+      })),
+    }
+
     setGuardando(true)
     try {
-      const respuesta = await api.crearRonda({
-        course: {
-          name: campo.name.trim(),
-          city: campo.city.trim() || null,
-          country: campo.country.trim() || null,
-        },
-        played_on: datos.played_on,
-        tournament_id: datos.tournament_id ? Number(datos.tournament_id) : null,
-        weather: datos.weather || null,
-        notes: datos.notes.trim() || null,
-        holes: hoyos.map((hoyo) => ({
-          hole_number: hoyo.hole_number,
-          par: Number(hoyo.par),
-          strokes: Number(hoyo.strokes),
-          putts: hoyo.putts === '' ? null : Number(hoyo.putts),
-          fairway_side: hoyo.fairway_side,
-          green_in_regulation: hoyo.green_in_regulation,
-        })),
-      })
+      const respuesta = await api.crearRonda(tarjeta)
 
       // La ronda ya está a salvo en el servidor: el borrador local sobra.
       guardadaConExito.current = true
@@ -230,6 +235,17 @@ export default function NuevaRonda() {
       exito('¡Ronda guardada! Tu hándicap se ha actualizado.')
       navegar(`/rondas/${respuesta.ronda.id}`)
     } catch (fallo) {
+      // Sin cobertura la ronda no se pierde: se encola y se reenvía sola.
+      // Es el escenario de terminar los 18 en mitad del campo.
+      if (esErrorDeRed(fallo) && encolarRonda(tarjeta)) {
+        guardadaConExito.current = true
+        borrarBorrador()
+
+        exito('Sin cobertura: la ronda queda guardada y se enviará al recuperar señal.')
+        navegar('/panel')
+        return
+      }
+
       setError(fallo.message)
       avisarError('No se ha podido guardar la ronda.')
     } finally {
