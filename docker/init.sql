@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash   VARCHAR(255) NOT NULL,
     name            VARCHAR(100) NOT NULL,
     handicap        DECIMAL(4,1) DEFAULT NULL,
+    token_version   INT NOT NULL DEFAULT 0,
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uq_users_email (email)
@@ -94,4 +95,20 @@ CREATE TABLE IF NOT EXISTS round_holes (
     CONSTRAINT ck_hole_number CHECK (hole_number BETWEEN 1 AND 18),
     CONSTRAINT fk_round_holes_round FOREIGN KEY (round_id)
         REFERENCES rounds(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Peticiones de restablecimiento de contraseña.
+-- Se guarda el HASH del token, nunca el token: quien leyera esta tabla no
+-- podría usar lo que ve para entrar en ninguna cuenta.
+CREATE TABLE IF NOT EXISTS password_resets (
+    id              INT AUTO_INCREMENT PRIMARY KEY,
+    user_id         INT NOT NULL,
+    token_hash      CHAR(64) NOT NULL,
+    expira_en       DATETIME NOT NULL,
+    usado_en        DATETIME DEFAULT NULL,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_password_resets_token (token_hash),
+    KEY ix_password_resets_user_id (user_id),
+    CONSTRAINT fk_password_resets_user FOREIGN KEY (user_id)
+        REFERENCES users (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

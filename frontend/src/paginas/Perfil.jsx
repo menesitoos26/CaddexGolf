@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { api } from '../api/cliente'
+import { almacenToken, api } from '../api/cliente'
 import { useAuth } from '../hooks/useAuth'
 import { useNotificaciones } from '../hooks/useNotificaciones'
 import { formatearNumero, obtenerIniciales } from '../utils/formato'
@@ -54,9 +54,19 @@ export default function Perfil() {
           : {}),
       })
 
-      actualizarUsuario(actualizado)
+      // Cambiar la contraseña invalida las sesiones anteriores, incluida la de
+      // este dispositivo. El servidor devuelve un token nuevo para que no nos
+      // eche justo después de hacer lo correcto.
+      const { access_token: tokenNuevo, ...perfil } = actualizado
+      if (tokenNuevo) almacenToken.guardar(tokenNuevo)
+
+      actualizarUsuario(perfil)
       setPasswords({ actual: '', nueva: '', repetir: '' })
-      exito('Perfil actualizado.')
+      exito(
+        tokenNuevo
+          ? 'Contraseña actualizada. Se han cerrado las sesiones de otros dispositivos.'
+          : 'Perfil actualizado.',
+      )
     } catch (fallo) {
       setError(fallo.message)
     } finally {

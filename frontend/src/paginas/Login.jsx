@@ -77,6 +77,10 @@ export default function Login() {
             {enviando ? 'Entrando…' : 'Entrar'}
           </button>
 
+          <p className="acceso-olvido">
+            <Link to="/recuperar">¿Has olvidado tu contraseña?</Link>
+          </p>
+
         </form>
 
         <p className="acceso-pie">

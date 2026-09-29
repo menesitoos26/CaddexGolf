@@ -38,6 +38,24 @@ class Settings(BaseSettings):
     # CORS: lista separada por comas. En producción hay que ser explícito.
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
 
+    # Dirección pública de la aplicación, para construir el enlace que se envía
+    # por correo al restablecer la contraseña.
+    app_base_url: str = "http://localhost:5173"
+
+    # Restablecimiento de contraseña. Una hora es suficiente para abrir el
+    # correo y bastante poco para que un enlace olvidado en la bandeja de
+    # entrada siga siendo útil a quien no debe.
+    reset_token_expire_minutes: int = 60
+
+    # SMTP. Si no hay servidor configurado, el enlace se escribe en el log en
+    # lugar de enviarse: así se puede desarrollar sin cuenta de correo.
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_starttls: bool = True
+    smtp_remitente: str = "Caddex Golf <no-responder@caddexgolf.com>"
+
     # API externa de campos de golf (se consume desde el backend, nunca desde
     # el navegador, para no exponer la clave).
     golf_course_api_key: str = ""
@@ -50,6 +68,10 @@ class Settings(BaseSettings):
     @property
     def cors_origin_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+
+    @property
+    def correo_configurado(self) -> bool:
+        return bool(self.smtp_host)
 
     @field_validator("database_url")
     @classmethod

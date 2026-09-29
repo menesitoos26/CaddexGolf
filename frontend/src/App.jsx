@@ -12,13 +12,15 @@ import MisRondas from './paginas/MisRondas'
 import NoEncontrada from './paginas/NoEncontrada'
 import NuevaRonda from './paginas/NuevaRonda'
 import Panel from './paginas/Panel'
+import Recuperar from './paginas/Recuperar'
 import Perfil from './paginas/Perfil'
 import Registro from './paginas/Registro'
+import Restablecer from './paginas/Restablecer'
 import Torneos from './paginas/Torneos'
 
 /* Las pantallas públicas se quedan en oscuro: es donde se vende el producto
    y no hay cifras que leer. El resto va en claro porque se usa a pleno sol. */
-const RUTAS_OSCURAS = ['/', '/login', '/registro']
+const RUTAS_OSCURAS = ['/', '/login', '/registro', '/recuperar', '/restablecer']
 
 /** Estructura común de las pantallas internas: encabezado + contenido. */
 function Layout() {
@@ -49,6 +51,8 @@ export default function App() {
         <Route element={<RutaSoloInvitados />}>
           <Route path="/login" element={<Login />} />
           <Route path="/registro" element={<Registro />} />
+          <Route path="/recuperar" element={<Recuperar />} />
+          <Route path="/restablecer" element={<Restablecer />} />
         </Route>
 
         <Route element={<RutaProtegida />}>

@@ -38,6 +38,17 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     handicap: Mapped[float | None] = mapped_column(Numeric(4, 1), nullable=True)
+    # Generación de sesiones. Cada token lleva dentro la versión con la que se
+    # emitió; si no coincide con esta, no vale. Cambiar la contraseña la sube
+    # en uno y deja fuera de golpe todos los tokens anteriores.
+    #
+    # Se usa un contador y no una fecha de corte porque el `iat` de un JWT va
+    # en segundos enteros: dos tokens emitidos en el mismo segundo son
+    # indistinguibles por fecha, y no hay forma de matar uno y conservar el
+    # otro. Un contador no tiene ese problema.
+    token_version: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now(), onupdate=func.now()
@@ -49,6 +60,31 @@ class User(Base):
     tournaments: Mapped[list[Tournament]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
+    restablecimientos: Mapped[list[PasswordReset]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+
+
+class PasswordReset(Base):
+    """Petición de restablecimiento de contraseña.
+
+    Guardamos el HASH del token, nunca el token. Si alguien llegara a leer esta
+    tabla, no podría usar lo que ve para entrar en ninguna cuenta: necesitaría
+    el original, que sólo existe en el correo del jugador.
+    """
+
+    __tablename__ = "password_resets"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    token_hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True, index=True)
+    expira_en: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    usado_en: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    user: Mapped[User] = relationship(back_populates="restablecimientos")
 
 
 class Course(Base):

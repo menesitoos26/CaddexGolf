@@ -94,6 +94,14 @@ export const api = {
     peticion('/auth/login', { metodo: 'POST', cuerpo: datos, autenticada: false }),
   perfil: () => peticion('/auth/me'),
   actualizarPerfil: (datos) => peticion('/auth/me', { metodo: 'PUT', cuerpo: datos }),
+  recuperarContrasena: (email) =>
+    peticion('/auth/recuperar', { metodo: 'POST', cuerpo: { email }, autenticada: false }),
+  restablecerContrasena: (token, password) =>
+    peticion('/auth/restablecer', {
+      metodo: 'POST',
+      cuerpo: { token, password },
+      autenticada: false,
+    }),
 
   // --- Campos ---
   buscarCampos: (texto) => peticion(`/campos?q=${encodeURIComponent(texto)}`),
