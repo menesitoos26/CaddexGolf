@@ -169,6 +169,64 @@ La implementación está en [handicap.py](backend/app/handicap.py) y sus tests e
   para no revelar qué correos están registrados.
 - La clave de la API externa de campos vive en el backend, no en el bundle de JavaScript.
 - La documentación interactiva (`/docs`) se desactiva sola cuando `ENVIRONMENT=production`.
+- Nginx limita `/api/auth/login` y `/api/auth/registro` a 10 peticiones por minuto y por IP
+  (ráfaga de 5), para que no se pueda probar contraseñas de forma ilimitada.
+- El dominio no está escrito a mano en ningún fichero de configuración: sale de `DOMINIO`
+  en `docker/.env`. Así no puede volver a ocurrir que Nginx sirva un dominio presentando
+  el certificado de otro.
+
+---
+
+## Operativa del servidor
+
+### Certificado TLS
+
+El certificado lo gestiona **certbot instalado en el host** (no en Docker). Nginx solo lo lee,
+montando `/etc/letsencrypt` en modo lectura.
+
+> **Importante:** certbot debe usar el modo `webroot`, no `standalone`. En `standalone` certbot
+> necesita ocupar el puerto 80, que está en manos del contenedor de Nginx, así que la renovación
+> falla en silencio y el certificado acaba caducando. Es lo que pasó en septiembre de 2026.
+
+Para pasar un certificado de `standalone` a `webroot`:
+
+```bash
+sudo mkdir -p /var/www/certbot
+sudo certbot certonly --webroot -w /var/www/certbot -d "$DOMINIO" --force-renewal
+```
+
+Comprobar que la renovación automática funciona **sin tocar nada**:
+
+```bash
+sudo certbot renew --dry-run
+```
+
+Si ese ensayo falla, la renovación real también fallará. No dejarlo pasar.
+
+### Copias de seguridad
+
+[`scripts/backup-mysql.sh`](scripts/backup-mysql.sh) vuelca la base de datos, comprueba que el
+volcado contiene todas las tablas y no está truncado, y rota las copias de más de 7 días.
+
+```bash
+chmod +x scripts/backup-mysql.sh
+mkdir -p ~/backups/caddex
+
+# Copia diaria a las 04:15
+crontab -e
+15 4 * * * /home/ubuntu/CaddexGolf/scripts/backup-mysql.sh >> /home/ubuntu/backups/caddex/backup.log 2>&1
+```
+
+Restaurar una copia:
+
+```bash
+gunzip -c ~/backups/caddex/caddex-AAAAMMDD-HHMMSS.sql.gz | \
+  docker exec -i caddex_db mysql -ugolf_user -p"$MYSQL_PASSWORD" golf_db
+```
+
+> Las copias viven en el mismo servidor que la base de datos, así que protegen de un borrado
+> accidental pero **no** de perder la instancia. Sacarlas fuera (rclone, scp al homelab u Oracle
+> Object Storage) sigue pendiente.
 
 ---
 
