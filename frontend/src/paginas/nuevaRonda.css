@@ -166,3 +166,46 @@
     font-size: 28px;
   }
 }
+
+/* ------------------------------------------- autoguardado de la ronda */
+
+/* Aviso de ronda recuperada: informativo, no alarmante, con salida clara. */
+.aviso-borrador {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+  padding: 14px 18px;
+  background-color: var(--carbon-2);
+  border: 1px solid var(--linea);
+  border-left: 3px solid var(--acento);
+  border-radius: var(--r-sm);
+}
+
+.aviso-borrador > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.aviso-borrador strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.aviso-borrador span {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--acero);
+}
+
+/* Empuja los botones de la fila a la derecha y se queda ella a la izquierda. */
+.nota-autoguardado {
+  margin: 0 auto 0 0;
+  max-width: 42ch;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--acero);
+}
